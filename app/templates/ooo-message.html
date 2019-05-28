@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+{% from "_render_field.html" import render_field %}
+
+{% block app_content %}
+<div class="container" style="width: 50%;">
+    <h2 style = "text-align: center; ">Manage Out of Office Message</h2>
+    <hr>
+    <form action="" method="post" class="form" role="form">
+        {{ form.csrf_token() }}
+        <d1>
+            {{ render_field(form.message) }}
+            {{ render_field(form.end_date, placeholder='YYYY-MM-DD') }}
+            {{ render_field(form.OOO_enabled, placeholder=False) }}
+        </d1>
+    <p><input type=submit class='btn btn-primary btn-block' value="Submit"></p>
+    </form>
+{% endblock %}

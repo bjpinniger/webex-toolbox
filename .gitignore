@@ -1,0 +1,10 @@
+.flaskenv
+DB_delete.py
+DB_query.py
+toolbox.png
+Procfile
+/venv
+app.db
+*.log
+*.sql
+*.sqlite

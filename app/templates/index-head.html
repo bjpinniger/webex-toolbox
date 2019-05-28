@@ -1,0 +1,17 @@
+{% extends 'bootstrap/base.html' %}
+
+{% block title %}
+    Welcome to the Webex Toolbox
+{% endblock %}
+
+{% block navbar %}
+    <nav class="navbar">   
+        <!-- <body style="background-image:url(/static/css/background.jpg)"> -->
+    </nav>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        {% block app_content %}{% endblock %}
+    </div>
+{% endblock %}

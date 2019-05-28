@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+{% from "_render_field.html" import render_field %}
+
+{% block app_content %}
+<div class="container" style="width: 50%;">
+    <h2 style = "text-align: center; color:white;">Delete some of your messages</h2>
+    <hr>
+    <form action="" method="post" class="form" role="form">
+        {{ form.csrf_token() }}
+        <d1>
+            {{ render_field(form.space) }}
+            {{ render_field(form.messages) }}
+        </d1>
+    <p><input type=submit class='btn btn-danger btn-block' value="Delete Messages"></p>
+    </form>
+
+<script>
+var space_select = document.getElementById("space");
+var msgs_select = document.getElementById("messages");
+space_select.onchange = function()  {
+        
+    spaceId = space_select.value;
+    
+    fetch('/messages/' + spaceId).then(function(response) {
+        response.json().then(function(data) {
+            var optionHTML = '';
+            for (var msg of data.messages) {
+                optionHTML += '<option value="' + msg.id + '">' + msg.msgtxt + '</option>';
+            }
+            msgs_select.innerHTML = optionHTML;
+        })
+        
+    });
+}
+spaceId
+</script>
+{% endblock %}

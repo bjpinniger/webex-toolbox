@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+{% from "_render_field.html" import render_field %}
+
+{% block app_content %}
+<div class="container" style="width: 50%;">
+    <h2 style = "text-align: center;">Create a new Space</h2>
+    <hr>
+    <form action="" method="post" class="form" role="form">
+        {{ form.csrf_token() }}
+        <d1>
+            {{ render_field(form.space, placeholder='Enter the new space name...') }}
+            {{ render_field(form.message) }}
+        </d1>
+    <p><input type=submit class='btn btn-primary btn-block' value="Create Space"></p>
+    </form>
+{% endblock %}

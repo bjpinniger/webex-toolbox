@@ -1,0 +1,34 @@
+{% extends "head.html" %}
+
+{% block app_content %}
+<div class="container" align="center">
+  {% if result|length == 0 %}
+    <h2>Results...</h2>
+    <p></p>
+    
+    <table>
+      <col width="50%">
+      <col width="50%">
+
+      <tr>
+        <th>{{ ColumnName }}</th>
+        <th>Result</th>
+      </tr>
+
+      {% for name,result in messages %}
+          <tr>
+              <td>{{ name }}</td>
+              <td>{{ result }}</td>
+          </tr>
+      {% endfor %}
+    </table>
+
+  {% else %}
+    <h2>{{ result }}</h2>
+  {% endif %}
+  <p></p>
+  <h2 style="padding: 20pt;">What would you like to do next?</h2>
+  <p></p>
+  {% include 'foot.html' %}
+</div>
+{% endblock %}
