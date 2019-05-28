@@ -8,3 +8,5 @@ app.db
 *.log
 *.sql
 *.sqlite
+/__pycache__
+app/__pycache__/
