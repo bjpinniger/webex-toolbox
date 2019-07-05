@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% import 'bootstrap/wtf.html' as wtf %}
 {% from "_render_field.html" import render_field %}
+{% from "_render_field_no_label.html" import render_field_no_label %}
 
 {% block app_content %}
 <div class="container" style="width: 50%;">
@@ -12,6 +13,27 @@
             {{ render_field(form.space) }}
             {{ render_field(form.message) }}
         </d1>
+        <div data-toggle="fieldset" id="email-fieldset">
+              <button type="button" class="btn btn-primary" data-toggle="fieldset-add-row"
+                                            data-target="#email-fieldset">Add row</button>
+            <p>
+            <table>
+                <col width="95%">
+                <col width="5%">
+    
+                {% for email in form.emails %}
+                    <tr data-toggle="fieldset-entry">
+                        <td>{{ render_field_no_label(email.email_address) }}</td>
+                        <td><button type="button" class="btn btn-primary btn-block" data-toggle="fieldset-remove-row" id="email-{{loop.index0}}-remove">-</button></td>
+                    </tr>
+                {% endfor %}
+            </table>
+            <p>
+        </div>
+        {{ form.hidden_tag() }}
     <p><input type=submit class='btn btn-primary btn-block' value="Add Users"></p>
     </form>
+
+    <script src="https://code.jquery.com/jquery-2.1.4.js"></script>
+    <script src="{{ url_for("static", filename="js/page.js") }}"></script>
 {% endblock %}

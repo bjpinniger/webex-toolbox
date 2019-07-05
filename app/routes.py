@@ -3,14 +3,17 @@ import json
 import os
 import urllib
 from datetime import date, datetime, timedelta
+from webexteamssdk import WebexTeamsAPI, Webhook
 
-from flask import Flask, session, render_template, flash, request, redirect, url_for, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from app import app, db
-from app.forms import CombinedForm, SelectSpaceForm, AddSpaceForm, DeleteSpaceForm, OOOForm, DeleteMessagesForm
-from app.models import User, Space, Email
-from app.ciscowebex import  get_tokens, get_oauthuser_info, get_rooms, add_user, create_space, delete_space, send_message, create_webhook, send_directmessage, get_messages, delete_message
+from flask import Flask, session, render_template, flash, request, redirect, url_for, jsonify, Response
+from flask_pymongo import PyMongo
+from app import app
+from app.forms import SelectSpaceForm, AddSpaceForm, DeleteSpaceForm, OOOForm, DeleteMessagesForm, Webex_Meetings
+from app.ciscowebex import  get_tokens, get_oauthuser_info, get_rooms, create_space, delete_space, send_message, create_webhook, send_directmessage, get_messages, delete_message
 from app.addusers import addusers
+from app.meetings import get_meetings
+from app.webex_bot import incoming_msg
+from app.extensions import mongo, add_usr, get_user, get_OOO, update_OOO
 from config import Config
 
 app.config.from_object(Config)
@@ -23,37 +26,42 @@ webhookURI = Config.webhookURI
 
 # - - - Routes - - -
 
-@app.route("/",methods = ['GET', 'POST']) 
+@app.route("/", methods = ['GET', 'POST']) 
 
 def index():
     if request.method == 'POST':
         json_data = request.json
         print (json_data)
+        Webhook_name = json_data["name"]
         person_ID = json_data["createdBy"]
         roomType = json_data["data"]["roomType"]
         sender_ID = json_data["data"]["personId"]
-        user = User.query.filter_by(person_ID=person_ID).first()
-        message = user.message
-        OOO_enabled = user.OOO_enabled
-        access_token = user.access_token
-        if person_ID == sender_ID or OOO_enabled is False:
-            print ("no response")
-            return ""
-        elif len(message) == 0:
-            personID, emailID, displayName, status = get_oauthuser_info(access_token)
-            #if status == "OutOfOffice":
-            if status == "inactive":
-                message_text = "OOO Assistant: I'm out of the office."
+        if Webhook_name == "Webex_Toolbox_Webhook":
+            webhook_obj = Webhook(json_data)
+            incoming_msg(webhook_obj)
+            return "OK"
+        else:
+            OOO = get_OOO(person_ID)
+            message = OOO['message']
+            OOO_enabled = OOO['OOO_enabled']
+            access_token = OOO['access_token']
+            if person_ID == sender_ID or OOO_enabled is False:
+                print ("no response")
+                return ""
+            elif len(message) == 0:
+                personID, emailID, displayName, status = get_oauthuser_info(access_token)
+                #if status == "OutOfOffice":
+                if status == "inactive":
+                    message_text = "OOO Assistant: I'm out of the office."
+                    result = send_directmessage(access_token, sender_ID, message_text)
+                    print (result)
+                    return ""
+            else:
+                end_date = OOO['end_date']
+                message_text = "OOO Assistant: " + message + " until " + end_date
                 result = send_directmessage(access_token, sender_ID, message_text)
                 print (result)
                 return ""
-        else:
-            enddatetime = user.end_date
-            end_date = enddatetime.strftime('%d/%m/%Y')
-            message_text = "OOO Assistant: " + message + " until " + end_date
-            result = send_directmessage(access_token, sender_ID, message_text)
-            print (result)
-            return ""
     else:
         """Main Grant page"""
         redirect_URI = urllib.parse.quote_plus(redirectURI)
@@ -69,38 +77,53 @@ def oauth():
         personID, emailID, displayName, status = get_oauthuser_info(access_token)
         token_expires = datetime.now() + timedelta(seconds=expires_in)
         refresh_expires = datetime.now() + timedelta(seconds=refresh_token_expires_in)
-        result, owner, user_id = add_user(personID, displayName, access_token, token_expires, refresh_token, refresh_expires)
+        result = add_usr(personID, displayName, access_token, token_expires, refresh_token, refresh_expires)
         print (result)
-        session['user'] = user_id
-        firstName, lastName = displayName.split(' ')
+        session['user'] = personID
+        if ' ' in displayName:
+            firstName, lastName = displayName.split(' ')
+        else:
+            firstName = displayName
         return render_template("granted.html", Display_Name=firstName)
     else:
         return render_template("index.html")
 
+@app.route('/logout')
+def logout():
+    session.pop('user', None)
+    session.clear()
+    return redirect(url_for('index'))
+
+@app.route('/home')
+def home():
+    person_ID = session.get('user')
+    user = get_user(person_ID)
+    displayName = user["name"]
+    if ' ' in displayName:
+        firstName, lastName = displayName.split(' ')
+    else:
+        firstName = displayName
+    return render_template("granted.html", Display_Name=firstName)
+
 @app.route('/selectspace', methods = ['GET', 'POST'])
 def selectspace():
-    user_id = session.get('user')
-    owner = User.query.get(user_id)
-    accesstoken = owner.access_token
-    person_ID = owner.person_ID
+    person_ID = session.get('user')
+    user = get_user(person_ID)
+    accesstoken = user['access_token']
     room_list = get_rooms(accesstoken, person_ID, "all")
     form = SelectSpaceForm()
     form.space.choices = room_list
-    print (room_list)
     if request.method == 'POST':
-        if form.validate() == False:
-            flash('All fields are required.')
-            return render_template('selectspace.html', form = form)
-        else:
-            spaceId = request.form['space']
-            spaceName =  dict(form.space.choices).get(form.space.data)
-            message_text = request.form['message']
-            s = Space(owner=owner, spacename=spaceName, webex_id=spaceId, message=message_text)
-            db.session.add(s)
-            db.session.commit()
-            s_id = s.id
-            print (s_id)
-            return redirect(url_for('addemails', s_id=s_id))
+        spaceId = request.form['space']
+        print ("space ID: " + spaceId)
+        spaceName =  dict(form.space.choices).get(form.space.data)
+        email_list = form.emails.entries
+        message_text = request.form['message']
+        if len(message_text) > 0:
+            result = send_message(user_token=accesstoken, spaceId=spaceId, message=message_text)
+            print (result)
+        emails, results = addusers(spaceId, accesstoken, email_list)
+        return render_template('success.html', messages=zip(emails,results), ColumnName="Email Address")
     elif request.method == 'GET':
         return render_template('selectspace.html', form = form)  
 
@@ -108,61 +131,28 @@ def selectspace():
 def addspace():
     form = AddSpaceForm()
     if request.method == 'POST':
-        if form.validate() == False:
-            flash('All fields are required.')
-            return render_template('addspace.html', form = form)
-        else:
-            spaceName=request.form['space']
+        spaceName=request.form['space']
+        person_ID = session.get('user')
+        user = get_user(person_ID)
+        accesstoken = user['access_token']
+        result, spaceId = create_space(accesstoken, spaceName)
+        print (result)
+        if result == "Success":
             message_text = request.form['message']
-            user_id = session.get('user')
-            owner = User.query.get(user_id)
-            accesstoken = owner.access_token
-            result, roomId = create_space(accesstoken, spaceName)
-            print (result)
-            if result == "Success":
-                s = Space(owner=owner, spacename=spaceName, webex_id=roomId, message=message_text)
-                db.session.add(s)
-                db.session.commit()
-                s_id = s.id
-                print (s_id)
-                return redirect(url_for('addemails', s_id=s_id))
-            else:
-                return render_template('success.html', result=result)
+            email_list = form.emails.entries
+            if len(message_text) > 0:
+                result = send_message(user_token=accesstoken, spaceId=spaceId, message=message_text)
+                print (result)
+            emails, results = addusers(spaceId, accesstoken, email_list)
+        return render_template('success.html', messages=zip(emails,results), ColumnName="Email Address")
     elif request.method == 'GET':
         return render_template('addspace.html', form = form)  
 
-@app.route('/addemails/<int:s_id>', methods=['GET', 'POST'])
-def addemails(s_id):
-    space = Space.query.get(s_id)
-
-    # if there are no emails, provide an empty one so the table is rendered
-    if len(space.emails) == 0:
-        space.emails = [Email(email_address="user@example.com")]
-
-    # else: forms loaded through db relation
-    form = CombinedForm(obj=space)
-
-    if form.validate_on_submit():
-        form.populate_obj(space)
-        db.session.commit()
-        message_text = request.form['message']
-        user_id = session.get('user')
-        owner = User.query.get(user_id)
-        accesstoken = owner.access_token
-        emails, results = addusers(s_id, accesstoken)
-        if len(message_text) > 0:
-            result = send_message(user_token=accesstoken, spaceId=s_id, message=message_text)
-            print (result)
-        return render_template('success.html', messages=zip(emails,results), ColumnName="Email Address")
-    else:
-        return render_template('addemails.html', form=form)
-
 @app.route('/deletespace', methods = ['GET', 'POST'])
 def deletespace():
-    user_id = session.get('user')
-    owner = User.query.get(user_id)
-    accesstoken = owner.access_token
-    person_ID = owner.person_ID
+    person_ID = session.get('user')
+    user = get_user(person_ID)
+    accesstoken = user['access_token']
     room_list = get_rooms(accesstoken, person_ID, "creator")
     form = DeleteSpaceForm()
     form.space.choices = room_list
@@ -191,10 +181,9 @@ def deletespace():
 
 @app.route('/deletemessages', methods = ['GET', 'POST'])
 def deletemessages():
-    user_id = session.get('user')
-    owner = User.query.get(user_id)
-    accesstoken = owner.access_token
-    person_ID = owner.person_ID
+    person_ID = session.get('user')
+    user = get_user(person_ID)
+    accesstoken = user['access_token']
     room_list = get_rooms(accesstoken, person_ID, "all")
     form = DeleteMessagesForm()
     form.space.choices = room_list
@@ -224,25 +213,20 @@ def deletemessages():
         flash('NOTE: You can only delete messages that you created.')
         return render_template('deletemessages.html', form = form)  
 
-@app.route('/logout')
-def logout():
-    session.pop('user', None)
-    session.clear()
-    return redirect(url_for('index'))
-
-@app.route('/home')
-def home():
-    user_id = session.get('user')
-    owner = User.query.get(user_id)
-    displayName = owner.username
-    firstName, lastName = displayName.split(' ')
-    return render_template("granted.html", Display_Name=firstName)
-
 @app.route('/ooomessage', methods = ['GET', 'POST'])
 def ooomessage():
-    user_id = session.get('user')
-    owner = User.query.get(user_id)
-    form = OOOForm(obj=owner)
+    person_ID = session.get('user')
+    OOO = get_OOO(person_ID)
+    try:
+        end_date = datetime.strptime(OOO['end_date'], '%Y-%m-%d').date()
+        OOO['end_date'] = end_date
+        accesstoken = OOO['access_token']
+        webhookID = OOO['webhookID']
+    except:
+        user = get_user(person_ID)
+        accesstoken = user['access_token']
+        webhookID = ''
+    form = OOOForm(data=OOO)
     if request.method == 'POST':
         if form.validate() == False:
             flash('All fields are required.')
@@ -253,26 +237,19 @@ def ooomessage():
             message_text = request.form['message']
             OOO_enabled = form.data.get('OOO_enabled')
             print ("enabled: " + str(OOO_enabled))
-            accesstoken = owner.access_token
-            webhookID = owner.webhookID
             result, webhook_ID = create_webhook(accesstoken, webhookURI, webhookID)
             print (result)
             if result == "Success":
-                owner.message = message_text
-                owner.end_date = end_date
-                owner.webhookID = webhook_ID
-                owner.OOO_enabled = OOO_enabled
-                db.session.commit()
+                update_OOO(person_ID, message_text, endDate, webhook_ID, OOO_enabled)
             return render_template('success.html', result=result)
     elif request.method == 'GET':
         return render_template('ooo-message.html', form = form)  
 
 @app.route('/messages/<spaceId>')
 def messages(spaceId):
-    user_id = session.get('user')
-    owner = User.query.get(user_id)
-    accesstoken = owner.access_token
-    person_ID = owner.person_ID
+    person_ID = session.get('user')
+    user = get_user(person_ID)
+    accesstoken = user['access_token']
     result, msg_list = get_messages(accesstoken, spaceId, person_ID)
 
     msgArray = []
@@ -287,3 +264,36 @@ def messages(spaceId):
         msgArray.append(msgObj)
 
     return jsonify({'messages' : msgArray})
+
+@app.route('/meetings', methods = ['GET', 'POST'])
+def meetings():
+    form = Webex_Meetings()
+    if request.method == 'POST':
+        if form.validate() == False:
+            flash('All fields are required.')
+            return render_template('meetings.html', form = form)
+        else:
+            return render_template('success.html', result=result)
+    elif request.method == 'GET':
+        return render_template('meetings.html', form = form)  
+
+@app.route('/reports/<report_type>/<start_date>')
+def reports(report_type, start_date):
+    result, key_list, title_list, host_list, startdate_list, duration_list = get_meetings(report_type, start_date)
+    mtgArray = []
+    index = 0
+    for mtg in key_list:
+        mtgObj = {}
+        key = key_list[index]
+        title = title_list[index]
+        host = host_list[index]
+        startdate = startdate_list[index]
+        duration = duration_list[index]
+        mtgObj['key'] = key
+        mtgObj['title'] = title
+        mtgObj['host'] = host
+        mtgObj['startdate'] = startdate
+        mtgObj['duration'] = duration
+        index = index + 1
+        mtgArray.append(mtgObj)
+    return jsonify({'meetings' : mtgArray})

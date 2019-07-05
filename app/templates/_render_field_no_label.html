@@ -1,6 +1,5 @@
 {% macro render_field_no_label(field) %}
 <div class="form-group">
-    <!-- <label style="color:white;" for="{{ field.name }}" class="control-label">{{ field.label.text }}</label> -->
     <div>
         {{ field(class_='form-control', **kwargs)|safe }}
         <ul>

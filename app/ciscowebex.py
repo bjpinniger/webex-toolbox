@@ -1,7 +1,5 @@
 import requests
 import json
-from app import db
-from app.models import User, Space, Email
 from webexteamssdk import WebexTeamsAPI, ApiError
 
 
@@ -41,28 +39,6 @@ def get_rooms(user_token, person_ID, room_filter):
     else:
         room_list = [(room.id,room.title) for room in rooms]
     return room_list
-
-def add_user(personID, displayName, user_token, access_expdate, refresh_token, refresh_expdate):
-    user = User.query.filter_by(person_ID=personID).first()
-    if user is None:
-        u = User(person_ID=personID, username=displayName, access_token=user_token, access_expdate=access_expdate, refresh_token=refresh_token, refresh_expdate=refresh_expdate)
-        print (u.person_ID, u.username, u.access_token, u.access_expdate, u.refresh_token, u.refresh_expdate)
-        db.session.add(u)
-        db.session.commit()
-        owner = u
-        print (owner)
-        user_id = u.id
-        result = "User added to db"
-    else:
-        owner = user
-        user_id = user.id
-        user.access_token=user_token
-        user.access_expdate=access_expdate
-        user.refresh_token=refresh_token
-        user.refresh_expdate=refresh_expdate
-        db.session.commit()
-        result = "User already exists in db"
-    return result, owner, user_id
 
 def add_users(user_token, email, spaceId):
     api = WebexTeamsAPI(access_token=user_token)
@@ -118,9 +94,7 @@ def get_refresh_token(user_token, clientID, secretID, refresh_token):
 def send_message(user_token, spaceId, message):
     api = WebexTeamsAPI(access_token=user_token)
     try:
-        space = Space.query.get(spaceId)
-        webex_id = space.webex_id
-        sendmsg = api.messages.create(roomId=webex_id,text=message)
+        sendmsg = api.messages.create(roomId=spaceId,text=message)
         result = "Success"
     except ApiError as error:
         result = "There was a problem sending the message."
@@ -128,7 +102,7 @@ def send_message(user_token, spaceId, message):
 
 def create_webhook(user_token, webhookURI, webhookID):
     api = WebexTeamsAPI(access_token=user_token)
-    if webhookID is None:
+    if webhookID is None or webhookID == '':
         try:
             webhook = api.webhooks.create(name="OOO-Assistant Webhook",targetUrl=webhookURI,resource="messages", event="created")
             webhookID = webhook.id
