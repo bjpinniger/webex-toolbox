@@ -1,10 +1,7 @@
-.flaskenv
-DB_delete.py
-DB_query.py
+.env
 toolbox.png
 Procfile
 /venv
-app.db
 *.log
 *.sql
 *.sqlite
