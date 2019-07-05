@@ -9,7 +9,7 @@ from flask import Flask, session, render_template, flash, request, redirect, url
 from flask_pymongo import PyMongo
 from app import app
 from app.forms import SelectSpaceForm, AddSpaceForm, DeleteSpaceForm, OOOForm, DeleteMessagesForm, Webex_Meetings
-from app.ciscowebex import  get_tokens, get_oauthuser_info, get_rooms, create_space, delete_space, send_message, create_webhook, send_directmessage, get_messages, delete_message
+from app.ciscowebex import  get_tokens, get_oauthuser_info, get_rooms, create_space, delete_space, send_message, create_webhook, send_directmessage, get_messages, delete_message, get_message
 from app.addusers import addusers
 from app.meetings import get_meetings
 from app.webex_bot import incoming_msg
@@ -36,6 +36,7 @@ def index():
         person_ID = json_data["createdBy"]
         roomType = json_data["data"]["roomType"]
         sender_ID = json_data["data"]["personId"]
+        message_ID = json_data["data"]["id"]
         if Webhook_name == "Webex_Toolbox_Webhook":
             webhook_obj = Webhook(json_data)
             incoming_msg(webhook_obj)
@@ -45,13 +46,13 @@ def index():
             message = OOO['message']
             OOO_enabled = OOO['OOO_enabled']
             access_token = OOO['access_token']
-            if person_ID == sender_ID or OOO_enabled is False:
+            message_text, result = get_message(access_token, message_ID)
+            if person_ID == sender_ID or OOO_enabled is False or "OOO Assistant" in message_text:
                 print ("no response")
                 return ""
             elif len(message) == 0:
                 personID, emailID, displayName, status = get_oauthuser_info(access_token)
-                #if status == "OutOfOffice":
-                if status == "inactive":
+                if status == "OutOfOffice":
                     message_text = "OOO Assistant: I'm out of the office."
                     result = send_directmessage(access_token, sender_ID, message_text)
                     print (result)

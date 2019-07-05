@@ -100,6 +100,16 @@ def send_message(user_token, spaceId, message):
         result = "There was a problem sending the message."
     return result
 
+def get_message(user_token, messageId):
+    api = WebexTeamsAPI(access_token=user_token)
+    try:
+        getmsg = api.messages.get(messageId)
+        message_text = getmsg.text
+        result = "Success"
+    except ApiError as error:
+        result = "There was a problem sending the message."
+    return result, message_text
+
 def create_webhook(user_token, webhookURI, webhookID):
     api = WebexTeamsAPI(access_token=user_token)
     if webhookID is None or webhookID == '':
