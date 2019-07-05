@@ -9,11 +9,11 @@ webex_admin = Config.webex_admin
 webex_pwd = Config.webex_pwd
 webex_site = Config.webex_site
 
+url = "https://%s.webex.com/WBXService/XMLService" % webex_site
 
 def create_meeting(MRN):
     SIP_URI = ""
-    url = f'https://{webex_site}.webex.com/WBXService/XMLService'
-    payload = f'<serv:message xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n\t<header>\n\t\t<securityContext>\n\t\t\t<webExID>{webex_admin}</webExID>\n\t\t\t<password>{webex_pwd}</password>\n\t\t\t<siteName>{webex_site}</siteName>\n\t\t</securityContext>\n\t</header>\n\t<body>\n\t\t<bodyContent xsi:type=\"java:com.webex.service.binding.meeting.CreateMeeting\">\n\t\t\t<accessControl>\n\t\t\t\t<meetingPassword>ewrt74tkj4et</meetingPassword>\n\t\t\t</accessControl>\n\t\t\t<metaData>\n\t\t\t\t<confName>{MRN}</confName>\n\t\t\t</metaData>\n\t\t\t<schedule>\n\t\t\t\t<startDate/>\n\t\t\t</schedule>\n\t\t</bodyContent>\n\t</body>\n</serv:message>'
+    payload = '<serv:message xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n\t<header>\n\t\t<securityContext>\n\t\t\t<webExID>%s</webExID>\n\t\t\t<password>%s</password>\n\t\t\t<siteName>%s</siteName>\n\t\t</securityContext>\n\t</header>\n\t<body>\n\t\t<bodyContent xsi:type=\"java:com.webex.service.binding.meeting.CreateMeeting\">\n\t\t\t<accessControl>\n\t\t\t\t<meetingPassword>ewrt74tkj4et</meetingPassword>\n\t\t\t</accessControl>\n\t\t\t<metaData>\n\t\t\t\t<confName>%s</confName>\n\t\t\t</metaData>\n\t\t\t<schedule>\n\t\t\t\t<startDate/>\n\t\t\t</schedule>\n\t\t</bodyContent>\n\t</body>\n</serv:message>' % (webex_admin, webex_pwd, webex_site, MRN)
     headers = {
         'Content-Type': "text/plain",
         'Accept': "*/*",
@@ -44,8 +44,7 @@ def create_meeting(MRN):
 
 def get_meeting(meetingID):
     SIP_URI = ""
-    url = f'https://{webex_site}.webex.com/WBXService/XMLService'
-    payload = f'<serv:message xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n\t<header>\n\t\t<securityContext>\n\t\t\t<webExID>{webex_admin}</webExID>\n\t\t\t<password>{webex_pwd}</password>\n\t\t\t<siteName>{webex_site}</siteName>\n\t\t</securityContext>\n\t</header>\n\t<body>\n\t\t<bodyContent xsi:type=\"java:com.webex.service.binding.meeting.GetMeeting\">\n\t\t\t<meetingKey>{meetingID}</meetingKey>\n\t\t</bodyContent>\n\t</body>\n</serv:message>'
+    payload = '<serv:message xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n\t<header>\n\t\t<securityContext>\n\t\t\t<webExID>%s</webExID>\n\t\t\t<password>%s</password>\n\t\t\t<siteName>%s</siteName>\n\t\t</securityContext>\n\t</header>\n\t<body>\n\t\t<bodyContent xsi:type=\"java:com.webex.service.binding.meeting.GetMeeting\">\n\t\t\t<meetingKey>%s</meetingKey>\n\t\t</bodyContent>\n\t</body>\n</serv:message>' % (webex_admin, webex_pwd, webex_site, meetingID)
     headers = {
         'Content-Type': "text/plain",
         'Accept': "*/*",
@@ -82,11 +81,10 @@ def get_meetings(type, startdate):
     host_list = list()
     startdate_list = list()
     duration_list = list()
-    url = f'https://{webex_site}.webex.com/WBXService/XMLService'
     if type == "meet":
-        payload = f'<serv:message xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n\t<header>\n\t\t<securityContext>\n\t\t\t<webExID>{webex_admin}</webExID>\n\t\t\t<password>{webex_pwd}</password>\n\t\t\t<siteName>{webex_site}</siteName>\n\t\t</securityContext>\n\t</header>\n\t<body>\n\t\t<bodyContent xsi:type=\"java:com.webex.service.binding.meeting.LstsummaryMeeting\">\n\t\t\t<order>\n\t\t\t\t<orderBy>STARTTIME</orderBy>\n\t\t\t</order>\n\t\t\t<dateScope>\n\t\t\t\t<startDateStart>{start_date} 00:00:00</startDateStart>\n\t\t\t</dateScope>\n\t\t</bodyContent>\n\t</body>\n</serv:message>'
+        payload = '<serv:message xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n\t<header>\n\t\t<securityContext>\n\t\t\t<webExID>%s</webExID>\n\t\t\t<password>%s</password>\n\t\t\t<siteName>%s</siteName>\n\t\t</securityContext>\n\t</header>\n\t<body>\n\t\t<bodyContent xsi:type=\"java:com.webex.service.binding.meeting.LstsummaryMeeting\">\n\t\t\t<order>\n\t\t\t\t<orderBy>STARTTIME</orderBy>\n\t\t\t</order>\n\t\t\t<dateScope>\n\t\t\t\t<startDateStart>%s 00:00:00</startDateStart>\n\t\t\t</dateScope>\n\t\t</bodyContent>\n\t</body>\n</serv:message>' % (webex_admin, webex_pwd, webex_site, start_date)
     else:
-        payload = f'<serv:message xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n\t<header>\n\t\t<securityContext>\n\t\t\t<webExID>{webex_admin}</webExID>\n\t\t\t<password>{webex_pwd}</password>\n\t\t\t<siteName>{webex_site}</siteName>\n\t\t</securityContext>\n\t</header>\n\t<body>\n\t\t<bodyContent\n\t\t\txsi:type=\"java:com.webex.service.binding.event.LstsummaryEvent\">\n\t\t\t\t<listControl>\t\n\t\t\t\t\t<startFrom>1</startFrom>\n\t\t\t\t\t<maximumNum>1000</maximumNum>\n\t\t\t\t\t<listMethod>OR</listMethod>\n\t\t\t\t</listControl>\n\t\t\t<order>\n\t\t\t\t<orderBy>HOSTWEBEXID</orderBy>\n\t\t\t\t<orderAD>ASC</orderAD>\n\t\t\t\t<orderBy>EVENTNAME</orderBy>\n\t\t\t\t<orderAD>ASC</orderAD>\n\t\t\t\t<orderBy>STARTTIME</orderBy>\n\t\t\t\t<orderAD>ASC</orderAD>\n\t\t\t</order>\n\t\t\t<dateScope>\n\t\t\t\t<startDateStart>{start_date} 00:00:00</startDateStart>\n\t\t\t</dateScope>\n\t\t</bodyContent>\n\t</body>\n</serv:message>'
+        payload = '<serv:message xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n\t<header>\n\t\t<securityContext>\n\t\t\t<webExID>%s</webExID>\n\t\t\t<password>%s</password>\n\t\t\t<siteName>%s</siteName>\n\t\t</securityContext>\n\t</header>\n\t<body>\n\t\t<bodyContent\n\t\t\txsi:type=\"java:com.webex.service.binding.event.LstsummaryEvent\">\n\t\t\t\t<listControl>\t\n\t\t\t\t\t<startFrom>1</startFrom>\n\t\t\t\t\t<maximumNum>1000</maximumNum>\n\t\t\t\t\t<listMethod>OR</listMethod>\n\t\t\t\t</listControl>\n\t\t\t<order>\n\t\t\t\t<orderBy>HOSTWEBEXID</orderBy>\n\t\t\t\t<orderAD>ASC</orderAD>\n\t\t\t\t<orderBy>EVENTNAME</orderBy>\n\t\t\t\t<orderAD>ASC</orderAD>\n\t\t\t\t<orderBy>STARTTIME</orderBy>\n\t\t\t\t<orderAD>ASC</orderAD>\n\t\t\t</order>\n\t\t\t<dateScope>\n\t\t\t\t<startDateStart>%s 00:00:00</startDateStart>\n\t\t\t</dateScope>\n\t\t</bodyContent>\n\t</body>\n</serv:message>' % (webex_admin, webex_pwd, webex_site, start_date)
     headers = {
         'Content-Type': "text/plain",
         'Accept': "*/*",
