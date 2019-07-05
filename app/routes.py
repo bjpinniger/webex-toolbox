@@ -46,7 +46,7 @@ def index():
             message = OOO['message']
             OOO_enabled = OOO['OOO_enabled']
             access_token = OOO['access_token']
-            message_text, result = get_message(access_token, message_ID)
+            result, message_text = get_message(access_token, message_ID)
             if person_ID == sender_ID or OOO_enabled is False or "OOO Assistant" in message_text:
                 print ("no response")
                 return ""
