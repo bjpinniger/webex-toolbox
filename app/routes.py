@@ -47,7 +47,7 @@ def index():
             OOO_enabled = OOO['OOO_enabled']
             access_token = OOO['access_token']
             result, message_text = get_message(access_token, message_ID)
-            if person_ID == sender_ID or OOO_enabled is False or "OOO Assistant" in message_text:
+            if person_ID == sender_ID or "OOO Assistant" in message_text:
                 print ("no response")
                 return ""
             elif len(message) == 0:
@@ -57,6 +57,9 @@ def index():
                     result = send_directmessage(access_token, sender_ID, message_text)
                     print (result)
                     return ""
+            elif OOO_enabled is False:
+                print ("no response")
+                return ""
             else:
                 end_date = OOO['end_date']
                 message_text = "OOO Assistant: " + message + " until " + end_date
@@ -72,7 +75,7 @@ def index():
 def oauth():
     """Retrieves oauth code to generate tokens for users"""
     state = request.args.get("state") #Captures value of the state.
-    if "code" in request.args and state == "SpaceWizard":
+    if "code" in request.args and state == "Toolbox":
         code = request.args.get("code") #Captures value of the code.
         access_token, expires_in, refresh_token, refresh_token_expires_in = get_tokens(clientID, secretID, code, redirectURI)
         personID, emailID, displayName, status = get_oauthuser_info(access_token)

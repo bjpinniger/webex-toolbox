@@ -30,7 +30,7 @@ class DeleteMessagesForm(FlaskForm):
     submit = SubmitField()
 
 class OOOForm(FlaskForm):
-    end_date = DateField('End Date', default=date.today)
+    end_date = DateField('End Date', validators=[DataRequired()], default=date.today)
     message = TextAreaField('Message')
     OOO_enabled = BooleanField('Enabled')
     submit = SubmitField()
