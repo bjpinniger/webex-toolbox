@@ -9,7 +9,7 @@ from flask import Flask, session, render_template, flash, request, redirect, url
 from flask_pymongo import PyMongo
 from app import app
 from app.forms import SelectSpaceForm, AddSpaceForm, DeleteSpaceForm, OOOForm, DeleteMessagesForm, Webex_Meetings
-from app.ciscowebex import  get_tokens, get_oauthuser_info, get_rooms, create_space, delete_space, send_message, create_webhook, send_directmessage, get_messages, delete_message, get_message
+from app.ciscowebex import  get_tokens, get_oauthuser_info, get_rooms, create_space, delete_space, send_message, create_webhook, send_directmessage, get_messages, delete_message, get_message, get_members
 from app.addusers import addusers
 from app.meetings import get_meetings
 from app.webex_bot import incoming_msg
@@ -18,6 +18,7 @@ from config import Config
 
 app.config.from_object(Config)
 
+FORCE_SSL = Config.FORCE_SSL
 app.secret_key = Config.SECRET_KEY
 clientID = Config.clientID
 secretID = Config.secretID
@@ -26,8 +27,14 @@ webhookURI = Config.webhookURI
 
 # - - - Routes - - -
 
-@app.route("/", methods = ['GET', 'POST']) 
+@app.before_request
+def before_request():
+    if request.url.startswith('http://') and FORCE_SSL == "TRUE":
+        url = request.url.replace('http://', 'https://', 1)
+        code = 301
+        return redirect(url, code=code)
 
+@app.route("/", methods = ['GET', 'POST']) 
 def index():
     if request.method == 'POST':
         json_data = request.json
@@ -268,6 +275,22 @@ def messages(spaceId):
         msgArray.append(msgObj)
 
     return jsonify({'messages' : msgArray})
+
+@app.route('/members/<spaceId>')
+def members(spaceId):
+    person_ID = session.get('user')
+    user = get_user(person_ID)
+    accesstoken = user['access_token']
+    result, members_list = get_members(accesstoken, spaceId)
+    memberArray = []
+    index = 0
+
+    for member in members_list:
+        memberObj = {}
+        memberObj['member'] = member
+        memberArray.append(memberObj)
+
+    return jsonify({'members' : memberArray})
 
 @app.route('/meetings', methods = ['GET', 'POST'])
 def meetings():

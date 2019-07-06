@@ -107,7 +107,7 @@ def get_message(user_token, messageId):
         message_text = getmsg.text
         result = "Success"
     except ApiError as error:
-        result = "There was a problem sending the message."
+        result = "There was a problem getting the message."
     return result, message_text
 
 def create_webhook(user_token, webhookURI, webhookID):
@@ -152,7 +152,7 @@ def get_messages(user_token, spaceID, personID):
         msg_list = [(msg.id,msg.text) for msg in msgs if msg.personId == personID]
         result = "Success"
     except ApiError as error:
-        result = "There was a problem sending the message."
+        result = "There was a problem getting the messages."
     return result, msg_list
 
 def delete_message(user_token, msgID):
@@ -161,5 +161,16 @@ def delete_message(user_token, msgID):
         msgs = api.messages.delete(msgID)
         result = "Deleted"
     except ApiError as error:
-        result = "There was a problem sending the message."
+        result = "There was a problem deleting the message."
     return result
+
+def get_members(user_token, spaceID):
+    api = WebexTeamsAPI(access_token=user_token)
+    try:
+        members = api.memberships.list(roomId=spaceID,max=100)
+        members_list = [(member.personDisplayName + ' - ' + member.personEmail) for member in members]
+        member_list = sorted(members_list)
+        result = "Success"
+    except ApiError as error:
+        result = "There was a problem getting the memberships."
+    return result, member_list

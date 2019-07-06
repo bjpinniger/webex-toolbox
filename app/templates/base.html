@@ -1,7 +1,7 @@
 {% extends 'bootstrap/base.html' %}
 
 {% block title %}
-    Welcome to the Webex Toolbox
+    Webex Toolbox
 {% endblock %}
 
 {% block navbar %}
@@ -12,20 +12,17 @@
 
 {% block content %}
 <style>
-        <!-- table, td, th {
-        border: 1px solid black;
-    } -->
         
     table {
             border-collapse: collapse;
             width: 100%;
         }
-        
         td {
             padding: 5px;
             height: 25px;
             vertical-align: top;
         }
+
 </style>
     <div class="container" style = "width: 50%;">
         {% with messages = get_flashed_messages() %}

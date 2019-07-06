@@ -1,6 +1,7 @@
 import os
 
 class Config(object):
+    FORCE_SSL = os.environ.get('FORCE_SSL')
     MONGO_URI = os.environ.get('MONGO_URI')
     SECRET_KEY = os.environ.get('SECRET_KEY')
     clientID = os.environ.get('CLIENT_ID')

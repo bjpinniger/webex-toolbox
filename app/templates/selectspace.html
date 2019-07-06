@@ -4,9 +4,34 @@
 {% from "_render_field_no_label.html" import render_field_no_label %}
 
 {% block app_content %}
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+<div class="container">
+    <div class="modal fade" id="myModal" role="dialog">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">&times;</button>
+              <h4 class="modal-title">Active Members</h4>
+            </div>
+            <div class="modal-body">
+                <ul id="content" class="list-group"></ul>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+          
+        </div>
+    </div>
+</div>
 <div class="container" style="width: 50%;">
     <h2 style = "text-align: center;">Add people to a space</h2>
     <hr>
+    <p></p>
+    <div class="col text-center">
+        <button type="button" id="myBtn" class="btn btn-primary" data-toggle="modal" data-target="#myModal" style = "align-content : center;">View Members</button>
+    </div>
+
     <form action="" method="post" class="form" role="form">
         {{ form.csrf_token() }}
         <d1>
@@ -34,6 +59,30 @@
     <p><input type=submit class='btn btn-primary btn-block' value="Add Users"></p>
     </form>
 
-    <script src="https://code.jquery.com/jquery-2.1.4.js"></script>
-    <script src="{{ url_for("static", filename="js/page.js") }}"></script>
+<script>
+var btn = document.getElementById("myBtn");
+var space = document.getElementById("space");
+var content = document.getElementById("content");
+
+btn.onclick = function() {
+    while(content.hasChildNodes())
+        {
+        content.removeChild(content.firstChild);
+        }
+    spaceId = space.value;    
+        fetch('/members/' + spaceId).then(function(response) {
+            response.json().then(function(data) {
+                for (var user of data.members) {
+                    var listItem = document.createElement('li');
+                    listItem.setAttribute('class','list-group-item');
+                    listItem.innerHTML = (user.member);
+                    content.appendChild(listItem);
+                }
+            })
+        });
+}
+</script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+<script src="{{ url_for("static", filename="js/page.js") }}"></script>
 {% endblock %}

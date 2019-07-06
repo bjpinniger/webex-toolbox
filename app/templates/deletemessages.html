@@ -19,9 +19,7 @@
 var space_select = document.getElementById("space");
 var msgs_select = document.getElementById("messages");
 space_select.onchange = function()  {
-        
     spaceId = space_select.value;
-    
     fetch('/messages/' + spaceId).then(function(response) {
         response.json().then(function(data) {
             var optionHTML = '';
@@ -30,7 +28,6 @@ space_select.onchange = function()  {
             }
             msgs_select.innerHTML = optionHTML;
         })
-        
     });
 }
 spaceId
