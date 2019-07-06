@@ -26,7 +26,6 @@ redirectURI = Config.redirectURI
 webhookURI = Config.webhookURI
 
 # - - - Routes - - -
-
 @app.before_request
 def before_request():
     if request.url.startswith('http://') and FORCE_SSL == "TRUE":
@@ -53,26 +52,31 @@ def index():
             message = OOO['message']
             OOO_enabled = OOO['OOO_enabled']
             access_token = OOO['access_token']
+            end_date = OOO['end_date']
             result, message_text = get_message(access_token, message_ID)
+            personID, emailID, displayName, status = get_oauthuser_info(access_token)
             if person_ID == sender_ID or "OOO Assistant" in message_text:
                 print ("no response")
-                return ""
-            elif len(message) == 0:
-                personID, emailID, displayName, status = get_oauthuser_info(access_token)
-                if status == "OutOfOffice":
+                return "OK"
+            elif status == "OutOfOffice":
+                if len(message) == 0:
                     message_text = "OOO Assistant: I'm out of the office."
                     result = send_directmessage(access_token, sender_ID, message_text)
                     print (result)
-                    return ""
+                    return "OK"
+                else:
+                    message_text = "OOO Assistant: " + message + " until " + end_date
+                    result = send_directmessage(access_token, sender_ID, message_text)
+                    print (result)
+                    return "OK"
             elif OOO_enabled is False:
                 print ("no response")
-                return ""
+                return "OK"
             else:
-                end_date = OOO['end_date']
                 message_text = "OOO Assistant: " + message + " until " + end_date
                 result = send_directmessage(access_token, sender_ID, message_text)
                 print (result)
-                return ""
+                return "OK"
     else:
         """Main Grant page"""
         redirect_URI = urllib.parse.quote_plus(redirectURI)
