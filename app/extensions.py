@@ -32,16 +32,16 @@ def get_OOO(person_ID):
         OOO['access_token'] = mongo_user["access_token"]
         OOO['webhookID_D'] = mongo_user["webhookID"]["direct"]
         OOO['webhookID_M'] = mongo_user["webhookID"]["mentions"]
+        if len(OOO['webhookID_D']) > 0:
+            OOO['Direct'] = True
+        else:
+            OOO['Direct'] = False
+        if len(OOO['webhookID_M']):
+            OOO['Mentions'] = True
+        else:
+            OOO['Mentions'] = False
     except:
         print ("no OOO data")
-    if len(OOO['webhookID_D']) > 0:
-        OOO['Direct'] = True
-    else:
-        OOO['Direct'] = False
-    if len(OOO['webhookID_M']):
-        OOO['Mentions'] = True
-    else:
-        OOO['Mentions'] = False
     return OOO
 
 def update_OOO(person_ID, message_text, endDate, webhook_ID_D, webhook_ID_M, OOO_enabled):
