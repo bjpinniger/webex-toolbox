@@ -74,7 +74,7 @@ def index():
                 return "OK"
             else:
                 if len(message) == 0:
-                    message_text = "OOO Assistant: I'm out of the office."
+                    message_text = "OOO Assistant: I'm out of the office until " + end_date
                     result = send_directmessage(access_token, sender_ID, message_text)
                     print (result)
                     return "OK"
