@@ -110,33 +110,46 @@ def get_message(user_token, messageId):
         result = "There was a problem getting the message."
     return result, message_text
 
-def create_webhook(user_token, webhookURI, webhookID):
+def create_webhook(user_token, webhookURI, webhookID, webhookType):
     api = WebexTeamsAPI(access_token=user_token)
     if webhookID is None or webhookID == '':
         try:
-            webhook = api.webhooks.create(name="OOO-Assistant Webhook",targetUrl=webhookURI,resource="messages", event="created", filter="roomType=direct")
-            #webhook = api.webhooks.create(name="OOO-Assistant Webhook",targetUrl=webhookURI,resource="messages", event="created", filter="mentionedPeople=me")
+            if webhookType == "direct":
+                webhook = api.webhooks.create(name="OOO-Assistant Webhook",targetUrl=webhookURI,resource="messages", event="created", filter="roomType=direct")
+            else:
+                webhook = api.webhooks.create(name="OOO-Assistant Webhook",targetUrl=webhookURI,resource="messages", event="created", filter="mentionedPeople=me")
             webhookID = webhook.id
             print(webhookID)
-            result = "Success"
+            result = "Webhook created"
         except ApiError as error:
             result = "There was a problem creating the webhook."
     else:
         try:
-            get_webhook = api.webhooks.get(webhookID)
-            print ("Webhook is " + get_webhook.status)
-            result = "Success"
+            get_webhook = api.webhooks.get(webhookID) 
+            result = ("Webhook is " + get_webhook.status)
         except ApiError as error:
             print ("There was a problem getting the webhook, it was probably deleted.")
             try:
-                webhook = api.webhooks.create(name="OOO-Assistant Webhook",targetUrl=webhookURI,resource="messages", event="created", filter="roomType=direct")
-                #webhook = api.webhooks.create(name="OOO-Assistant Webhook",targetUrl=webhookURI,resource="messages", event="created", filter="mentionedPeople=me")
+                if webhookType == "direct":
+                    webhook = api.webhooks.create(name="OOO-Assistant Webhook",targetUrl=webhookURI,resource="messages", event="created", filter="roomType=direct")
+                else:
+                    webhook = api.webhooks.create(name="OOO-Assistant Webhook",targetUrl=webhookURI,resource="messages", event="created", filter="mentionedPeople=me")
                 webhookID = webhook.id
                 print(webhookID)
-                result = "Success"
+                result = "Webhook created"
             except ApiError as error:
                 result = "There was a problem creating the webhook."
     return result, webhookID
+
+def delete_webhook(user_token, webhookID):
+    api = WebexTeamsAPI(access_token=user_token)
+    if len(webhookID) > 0:
+        try:
+            webhook = api.webhooks.delete(webhookId=webhookID)
+            result = "Webhook deleted"
+        except ApiError as error:
+            result = "There was a problem deleting the webhook."
+        return result
 
 def send_directmessage(user_token, personID, message):
     api = WebexTeamsAPI(access_token=user_token)

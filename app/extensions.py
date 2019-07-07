@@ -30,12 +30,21 @@ def get_OOO(person_ID):
         OOO['message'] = mongo_user["message"]
         OOO['OOO_enabled'] = mongo_user["OOO_enabled"]
         OOO['access_token'] = mongo_user["access_token"]
-        OOO['webhookID'] = mongo_user["webhookID"]
+        OOO['webhookID_D'] = mongo_user["webhookID"]["direct"]
+        OOO['webhookID_M'] = mongo_user["webhookID"]["mentions"]
     except:
         print ("no OOO data")
+    if len(OOO['webhookID_D']) > 0:
+        OOO['Direct'] = True
+    else:
+        OOO['Direct'] = False
+    if len(OOO['webhookID_M']):
+        OOO['Mentions'] = True
+    else:
+        OOO['Mentions'] = False
     return OOO
 
-def update_OOO(person_ID, message_text, endDate, webhook_ID, OOO_enabled):
+def update_OOO(person_ID, message_text, endDate, webhook_ID_D, webhook_ID_M, OOO_enabled):
     user_collection = mongo.db.users 
-    user_collection.update({'person_ID' : person_ID}, {"$set":{"message" : message_text, "end_date" : endDate, "webhookID" : webhook_ID, "OOO_enabled" : OOO_enabled}})
+    user_collection.update({'person_ID' : person_ID}, {"$set":{"message" : message_text, "end_date" : endDate, "webhookID.direct" : webhook_ID_D, "webhookID.mentions" : webhook_ID_M, "OOO_enabled" : OOO_enabled}})
     return ''

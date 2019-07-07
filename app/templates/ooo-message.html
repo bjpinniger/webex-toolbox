@@ -3,16 +3,59 @@
 {% from "_render_field.html" import render_field %}
 
 {% block app_content %}
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+<div class="container">
+    <div class="modal fade" id="myModal" role="dialog">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">&times;</button>
+              <h4 class="modal-title">Preview Response</h4>
+            </div>
+            <div class="modal-body">
+                <p id="preview"></p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+    </div>
+</div>
 <div class="container" style="width: 50%;">
-    <h2 style = "text-align: center; ">Manage Out of Office Message</h2>
+    <h2 style = "text-align: center; ">Out of Office Message</h2>
     <hr>
+    <p></p>
+    <div class="col text-center">
+        <button type="button" id="myBtn" class="btn btn-primary" data-toggle="modal" data-target="#myModal" style = "align-content : center;">Preview Response</button>
+    </div>
     <form action="" method="post" class="form" role="form">
         {{ form.csrf_token() }}
-        <d1>
-            {{ render_field(form.message) }}
-            {{ render_field(form.end_date, placeholder='YYYY-MM-DD') }}
-            {{ render_field(form.OOO_enabled, placeholder=False) }}
-        </d1>
+        {{ render_field(form.message) }}
+        {{ render_field(form.end_date, placeholder='YYYY-MM-DD') }}
+        {{form.OOO_enabled}} {{form.OOO_enabled.label}}
+        {{form.Direct}} {{form.Direct.label}}
+        {{form.Mentions}} {{form.Mentions.label}}
+    <p></p>
     <p><input type=submit class='btn btn-primary btn-block' value="Submit"></p>
     </form>
+    <script>
+    var btn = document.getElementById("myBtn");
+    var message_field = document.getElementById("message");
+    var date_field = document.getElementById("end_date");
+    var preview = document.getElementById("preview");
+    
+    btn.onclick = function() {
+        message_value = message_field.value;
+        date_value = date_field.value;
+        if(message_value.length == 0){
+            preview.innerHTML = "OOO Assistant: I'm out of the office until " + date_value;
+            }
+        else {
+            preview.innerHTML = "OOO Assistant: " + message_value + " until " + date_value;    
+                }
+            }
+    </script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
 {% endblock %}

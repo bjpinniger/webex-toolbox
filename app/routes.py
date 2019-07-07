@@ -9,7 +9,7 @@ from flask import Flask, session, render_template, flash, request, redirect, url
 from flask_pymongo import PyMongo
 from app import app
 from app.forms import SelectSpaceForm, AddSpaceForm, DeleteSpaceForm, OOOForm, DeleteMessagesForm, Webex_Meetings
-from app.ciscowebex import  get_tokens, get_oauthuser_info, get_rooms, create_space, delete_space, send_message, create_webhook, send_directmessage, get_messages, delete_message, get_message, get_members
+from app.ciscowebex import  get_tokens, get_oauthuser_info, get_rooms, create_space, delete_space, send_message, create_webhook, delete_webhook, send_directmessage, get_messages, delete_message, get_message, get_members
 from app.addusers import addusers
 from app.meetings import get_meetings
 from app.webex_bot import incoming_msg
@@ -236,26 +236,43 @@ def ooomessage():
         end_date = datetime.strptime(OOO['end_date'], '%Y-%m-%d').date()
         OOO['end_date'] = end_date
         accesstoken = OOO['access_token']
-        webhookID = OOO['webhookID']
+        webhookID_D = OOO['webhookID_D']
+        webhookID_M = OOO['webhookID_M']
     except:
         user = get_user(person_ID)
         accesstoken = user['access_token']
-        webhookID = ''
+        webhookID_D = ""
+        webhookID_M = ""
     form = OOOForm(data=OOO)
     if request.method == 'POST':
-        if form.validate() == False:
-            flash('All fields are required.')
+        OOO_enabled = form.data.get('OOO_enabled')
+        Direct = form.data.get('Direct')
+        Mentions = form.data.get('Mentions')
+        if OOO_enabled and Direct == False and Mentions == False:
+            flash('If the OOO Message is Enabled you must also select Direct and/or Mentions.')
             return render_template('ooo-message.html', form = form)
         else:
             endDate = request.form['end_date']
             end_date = date(*map(int, endDate.split('-')))
             message_text = request.form['message']
-            OOO_enabled = form.data.get('OOO_enabled')
             print ("enabled: " + str(OOO_enabled))
-            result, webhook_ID = create_webhook(accesstoken, webhookURI, webhookID)
-            print (result)
-            if result == "Success":
-                update_OOO(person_ID, message_text, endDate, webhook_ID, OOO_enabled)
+            webhook_ID_D = ""
+            webhook_ID_M = ""
+            if Direct:
+                webhookType = "direct"
+                result, webhook_ID_D = create_webhook(accesstoken, webhookURI, webhookID_D, webhookType)
+                print ("Direct " + result)
+            else:
+                result = delete_webhook(accesstoken, webhookID_D)
+                print ("Direct " + result)
+            if Mentions:
+                webhookType = "mentions"
+                result, webhook_ID_M = create_webhook(accesstoken, webhookURI, webhookID_M, webhookType)
+                print ("Mentions " + result)
+            else:
+                result = delete_webhook(accesstoken, webhookID_M)
+                print ("Mentions " + result)
+            update_OOO(person_ID, message_text, endDate, webhook_ID_D, webhook_ID_M, OOO_enabled)
             return render_template('success.html', result=result)
     elif request.method == 'GET':
         return render_template('ooo-message.html', form = form)  

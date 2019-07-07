@@ -33,6 +33,8 @@ class OOOForm(FlaskForm):
     end_date = DateField('End Date', validators=[DataRequired()], default=date.today)
     message = TextAreaField('Message')
     OOO_enabled = BooleanField('Enabled')
+    Direct = BooleanField('Direct')
+    Mentions = BooleanField('Mentions')
     submit = SubmitField()
 
 class Webex_Meetings(FlaskForm):
