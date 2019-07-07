@@ -73,9 +73,15 @@ def index():
                 print ("no response")
                 return "OK"
             else:
-                message_text = "OOO Assistant: " + message + " until " + end_date
-                result = send_directmessage(access_token, sender_ID, message_text)
-                print (result)
+                if len(message) == 0:
+                    message_text = "OOO Assistant: I'm out of the office."
+                    result = send_directmessage(access_token, sender_ID, message_text)
+                    print (result)
+                    return "OK"
+                else:
+                    message_text = "OOO Assistant: " + message + " until " + end_date
+                    result = send_directmessage(access_token, sender_ID, message_text)
+                    print (result)
                 return "OK"
     else:
         """Main Grant page"""
