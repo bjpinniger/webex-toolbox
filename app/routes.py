@@ -263,15 +263,17 @@ def ooomessage():
                 result, webhook_ID_D = create_webhook(accesstoken, webhookURI, webhookID_D, webhookType)
                 print ("Direct " + result)
             else:
-                result = delete_webhook(accesstoken, webhookID_D)
-                print ("Direct " + result)
+                if len(webhookID_D) > 0:
+                    result = delete_webhook(accesstoken, webhookID_D)
+                    print ("Direct " + result)
             if Mentions:
                 webhookType = "mentions"
                 result, webhook_ID_M = create_webhook(accesstoken, webhookURI, webhookID_M, webhookType)
                 print ("Mentions " + result)
             else:
-                result = delete_webhook(accesstoken, webhookID_M)
-                print ("Mentions " + result)
+                if len(webhookID_M) > 0:
+                    result = delete_webhook(accesstoken, webhookID_M)
+                    print ("Mentions " + result)
             update_OOO(person_ID, message_text, endDate, webhook_ID_D, webhook_ID_M, OOO_enabled)
             return render_template('success.html', result=result)
     elif request.method == 'GET':

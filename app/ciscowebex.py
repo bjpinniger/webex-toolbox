@@ -143,13 +143,12 @@ def create_webhook(user_token, webhookURI, webhookID, webhookType):
 
 def delete_webhook(user_token, webhookID):
     api = WebexTeamsAPI(access_token=user_token)
-    if len(webhookID) > 0:
-        try:
-            webhook = api.webhooks.delete(webhookId=webhookID)
-            result = "Webhook deleted"
-        except ApiError as error:
-            result = "There was a problem deleting the webhook."
-        return result
+    try:
+        webhook = api.webhooks.delete(webhookId=webhookID)
+        result = "Webhook deleted"
+    except ApiError as error:
+        result = "There was a problem deleting the webhook."
+    return result
 
 def send_directmessage(user_token, personID, message):
     api = WebexTeamsAPI(access_token=user_token)
