@@ -1,0 +1,79 @@
+{% extends "head.html" %}
+
+{% block app_content %}
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+<div class="container">
+    <div class="modal fade" id="myModal" role="dialog">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">&times;</button>
+              <h4 id="title" class="modal-title"></h4>
+            </div>
+            <div class="modal-body">
+                <p id="warning"></p>
+                <ul id="content" class="list-group"></ul>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+    </div>
+</div>
+<div class="container" align="center">
+    <h2>Settings</h2>
+    <p></p>
+    <div class="btn-group-vertical" style="padding: 5px;">
+        <button type="button" id="view" class="btn btn-primary" data-toggle="modal" data-target="#myModal" style = "align-content : center;">View Webhooks</button>
+        <p></p>
+        <button type="button" id="delete" class="btn btn-danger" data-toggle="modal" data-target="#myModal" style = "align-content : center;">Delete Webhooks</button>
+    </div>
+</div>
+<script>
+var btn = document.getElementById("view");
+var btn1 = document.getElementById("delete");
+var content = document.getElementById("content");
+var title = document.getElementById("title");
+var warning = document.getElementById("warning");
+
+function getwebhooks(action) {
+    while(content.hasChildNodes())
+        {
+        content.removeChild(content.firstChild);
+        }  
+    fetch('/webhooks/' + action).then(function(response) {
+        response.json().then(function(data) {
+            if (data.webhooks.length == 0){
+                warning.innerHTML = "There are no active webhooks.";
+                }
+            else {
+                for (var webhook of data.webhooks) {
+                    var listItem = document.createElement('li');
+                    listItem.setAttribute('class','list-group-item');
+                    if (action == "view"){
+                        listItem.innerHTML = (webhook.webhook + " Webhook - Created " + moment(webhook.created).calendar());
+                        }
+                    else {
+                        listItem.innerHTML = (webhook.webhook + " - " + webhook.result);
+                    }
+                    content.appendChild(listItem);
+                }
+            }  
+        })
+    });
+}
+
+btn.onclick = function() {
+    title.innerHTML = 'Active Webhooks';
+    getwebhooks("view");
+}
+
+btn1.onclick = function() {
+    title.innerHTML = 'Deleted Webhooks';
+    getwebhooks("delete");
+}
+</script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+{% endblock %}

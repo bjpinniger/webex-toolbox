@@ -9,7 +9,7 @@ from flask import Flask, session, render_template, flash, request, redirect, url
 from flask_pymongo import PyMongo
 from app import app
 from app.forms import SelectSpaceForm, AddSpaceForm, DeleteSpaceForm, OOOForm, DeleteMessagesForm, Webex_Meetings
-from app.ciscowebex import  get_tokens, get_oauthuser_info, get_rooms, create_space, delete_space, send_message, create_webhook, delete_webhook, send_directmessage, get_messages, delete_message, get_message, get_members
+from app.ciscowebex import  get_tokens, get_oauthuser_info, get_rooms, create_space, delete_space, send_message, create_webhook, delete_webhook, list_webhooks, send_directmessage, get_messages, delete_message, get_message, get_members
 from app.addusers import addusers
 from app.meetings import get_meetings
 from app.webex_bot import incoming_msg
@@ -126,6 +126,10 @@ def home():
         firstName = displayName
     return render_template("granted.html", Display_Name=firstName)
 
+@app.route('/settings')
+def settings():
+    return render_template("settings.html")
+
 @app.route('/selectspace', methods = ['GET', 'POST'])
 def selectspace():
     person_ID = session.get('user')
@@ -210,11 +214,9 @@ def deletemessages():
     form.space.choices = room_list
     if request.method == 'POST':
         spaceId = request.form['space']
-        print (spaceId)
         result, msg_list = get_messages(accesstoken, spaceId, person_ID)
         msgIdList = request.form.getlist('messages')
         msgNameList = form.messages.data
-        print (msgNameList)
         results = list()
         msg_results = list()
         for msgId in msgIdList:
@@ -291,18 +293,12 @@ def messages(spaceId):
     user = get_user(person_ID)
     accesstoken = user['access_token']
     result, msg_list = get_messages(accesstoken, spaceId, person_ID)
-
     msgArray = []
-    index = 0
-
     for msg in msg_list:
         msgObj = {}
-        msg = msg_list[index]
         msgObj['id'] = msg[0]
         msgObj['msgtxt'] = msg[1]
-        index = index + 1
         msgArray.append(msgObj)
-
     return jsonify({'messages' : msgArray})
 
 @app.route('/members/<spaceId>')
@@ -312,14 +308,32 @@ def members(spaceId):
     accesstoken = user['access_token']
     result, members_list = get_members(accesstoken, spaceId)
     memberArray = []
-    index = 0
-
     for member in members_list:
         memberObj = {}
         memberObj['member'] = member
         memberArray.append(memberObj)
-
     return jsonify({'members' : memberArray})
+
+@app.route('/webhooks/<action>')
+def delete_webhooks(action):
+    person_ID = session.get('user')
+    user = get_user(person_ID)
+    accesstoken = user['access_token']
+    result, webhooks_list = list_webhooks(accesstoken)
+    print (result)
+    webhooksArray = []
+    for webhook in webhooks_list:
+        webhooksObj = {}
+        if "mentionedPeople" in webhook[1]:
+            webhooksObj['webhook'] = "Mentions"
+        else:
+            webhooksObj['webhook'] = "Direct"
+        webhooksObj['created'] = webhook[2]
+        if action == "delete":
+            result = delete_webhook(accesstoken, webhook[0])
+            webhooksObj['result'] = result
+        webhooksArray.append(webhooksObj)
+    return jsonify({'webhooks' : webhooksArray})
 
 @app.route('/meetings', methods = ['GET', 'POST'])
 def meetings():

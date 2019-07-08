@@ -150,6 +150,16 @@ def delete_webhook(user_token, webhookID):
         result = "There was a problem deleting the webhook."
     return result
 
+def list_webhooks(user_token):
+    api = WebexTeamsAPI(access_token=user_token)
+    try:
+        webhooks = api.webhooks.list()
+        webhook_list = [(webhook.id,webhook.filter,webhook.created) for webhook in webhooks if webhook.name == "OOO-Assistant Webhook"]
+        result = "Webhook list retrieved"
+    except ApiError as error:
+        result = "There was a problem retrieving the webhook list."
+    return result, webhook_list
+
 def send_directmessage(user_token, personID, message):
     api = WebexTeamsAPI(access_token=user_token)
     try:
