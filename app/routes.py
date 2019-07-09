@@ -240,15 +240,15 @@ def deletemessages():
 def ooomessage():
     person_ID = session.get('user')
     OOO = get_OOO(person_ID)
-    print (OOO['end_date'])
-    Str_EndDate = datetime.strftime(OOO['end_date'], '%b %d %Y %I:%M %p')
-    OOO['end_date'] = Str_EndDate
     try:
+        Str_EndDate = datetime.strftime(OOO['end_date'], '%b %d %Y %I:%M %p')
+        OOO['end_date'] = Str_EndDate
         accesstoken = OOO['access_token']
         webhookID_D = OOO['webhookID_D']
         webhookID_M = OOO['webhookID_M']
     except:
         user = get_user(person_ID)
+        OOO['end_date'] = datetime.strftime(datetime.utcnow(), '%b %d %Y %I:%M %p')
         accesstoken = user['access_token']
         webhookID_D = ""
         webhookID_M = ""
