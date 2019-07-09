@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import FieldList, validators, ValidationError
 from wtforms import Form as NoCsrfForm
-from wtforms.fields import StringField, FormField, SubmitField, DateField, SelectField, SelectMultipleField, TextAreaField, BooleanField
+from wtforms.fields import StringField, FormField, SubmitField, DateField, SelectField, SelectMultipleField, TextAreaField, BooleanField, IntegerField, DateTimeField
 from wtforms.validators import DataRequired, Email, Required
 from datetime import date
 
@@ -30,8 +30,9 @@ class DeleteMessagesForm(FlaskForm):
     submit = SubmitField()
 
 class OOOForm(FlaskForm):
-    end_date = DateField('End Date', validators=[DataRequired()], default=date.today)
     message = TextAreaField('Message')
+    end_date = DateTimeField('End Date', validators=[DataRequired()], format='%Y-%m-%d %H:%M')
+    TZ_Offset = IntegerField('TZ Offset')
     OOO_enabled = BooleanField('Enabled')
     Direct = BooleanField('Direct')
     Mentions = BooleanField('Mentions')

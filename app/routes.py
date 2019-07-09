@@ -52,7 +52,7 @@ def index():
             message = OOO['message']
             OOO_enabled = OOO['OOO_enabled']
             access_token = OOO['access_token']
-            end_date = OOO['end_date']
+            Str_EndDate = datetime.strftime(OOO['end_date'], '%b %d %Y %I:%M %p')
             result, message_text = get_message(access_token, message_ID)
             personID, emailID, displayName, status = get_oauthuser_info(access_token)
             if person_ID == sender_ID or "OOO Assistant" in message_text:
@@ -65,7 +65,7 @@ def index():
                     print (result)
                     return "OK"
                 else:
-                    message_text = "OOO Assistant: " + message + " until " + end_date
+                    message_text = "OOO Assistant: " + message + " until " + Str_EndDate + " GMT"
                     result = send_directmessage(access_token, sender_ID, message_text)
                     print (result)
                     return "OK"
@@ -74,12 +74,12 @@ def index():
                 return "OK"
             else:
                 if len(message) == 0:
-                    message_text = "OOO Assistant: I'm out of the office until " + end_date
+                    message_text = "OOO Assistant: I'm out of the office until " + Str_EndDate + " GMT"
                     result = send_directmessage(access_token, sender_ID, message_text)
                     print (result)
                     return "OK"
                 else:
-                    message_text = "OOO Assistant: " + message + " until " + end_date
+                    message_text = "OOO Assistant: " + message + " until " + Str_EndDate + " GMT"
                     result = send_directmessage(access_token, sender_ID, message_text)
                     print (result)
                 return "OK"
@@ -240,9 +240,10 @@ def deletemessages():
 def ooomessage():
     person_ID = session.get('user')
     OOO = get_OOO(person_ID)
+    print (OOO['end_date'])
+    Str_EndDate = datetime.strftime(OOO['end_date'], '%b %d %Y %I:%M %p')
+    OOO['end_date'] = Str_EndDate
     try:
-        end_date = datetime.strptime(OOO['end_date'], '%Y-%m-%d').date()
-        OOO['end_date'] = end_date
         accesstoken = OOO['access_token']
         webhookID_D = OOO['webhookID_D']
         webhookID_M = OOO['webhookID_M']
@@ -261,7 +262,8 @@ def ooomessage():
             return render_template('ooo-message.html', form = form)
         else:
             endDate = request.form['end_date']
-            end_date = date(*map(int, endDate.split('-')))
+            datetime_object = datetime.strptime(endDate, '%b %d %Y %I:%M %p')
+            UTC_EndDate = datetime_object + timedelta(minutes=int(request.form['TZ_Offset']))
             message_text = request.form['message']
             print ("enabled: " + str(OOO_enabled))
             webhook_ID_D = ""
@@ -282,7 +284,7 @@ def ooomessage():
                 if len(webhookID_M) > 0:
                     result = delete_webhook(accesstoken, webhookID_M)
                     print ("Mentions " + result)
-            update_OOO(person_ID, message_text, endDate, webhook_ID_D, webhook_ID_M, OOO_enabled)
+            update_OOO(person_ID, message_text, UTC_EndDate, webhook_ID_D, webhook_ID_M, OOO_enabled)
             return render_template('success.html', result=result)
     elif request.method == 'GET':
         return render_template('ooo-message.html', form = form)  
@@ -329,6 +331,7 @@ def delete_webhooks(action):
         else:
             webhooksObj['webhook'] = "Direct"
         webhooksObj['created'] = webhook[2]
+        print (webhook[2])
         if action == "delete":
             result = delete_webhook(accesstoken, webhook[0])
             webhooksObj['result'] = result

@@ -2,8 +2,13 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 {% from "_render_field.html" import render_field %}
 
+{% block head %}
+  {{ super() }}
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.min.css">
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+{% endblock %}
+
 {% block app_content %}
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
 <div class="container">
     <div class="modal fade" id="myModal" role="dialog">
         <div class="modal-dialog">
@@ -32,15 +37,47 @@
     <form action="" method="post" class="form" role="form">
         {{ form.csrf_token() }}
         {{ render_field(form.message) }}
-        {{ render_field(form.end_date, placeholder='YYYY-MM-DD') }}
+        {{form.end_date.label}}
+        <div class='input-group date' id='datetimepicker1'>
+            <input type='text' class="form-control" id="end_date" name="end_date" value="{{form.end_date.data}}"/>
+            <span class="input-group-addon">
+                <span class="glyphicon glyphicon-calendar"></span>
+            </span>
+        </div>
         {{form.OOO_enabled}} {{form.OOO_enabled.label}}
         {{form.Direct}} {{form.Direct.label}}
         {{form.Mentions}} {{form.Mentions.label}}
         <button type="button" id="help" class="btn btn-link" data-toggle="modal" data-target="#myModal"><img src="{{ url_for('static', filename='help-icon-17020.png') }}" style="width: 15pt"></button>
     <p></p>
     <p><input type=submit class='btn btn-primary btn-block' value="Submit"></p>
+    <p style="display: none">{{form.TZ_Offset}}</p>
     </form>
-    <script>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+<script src="https://code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
+<script type="text/javascript">
+    $(function () {
+        $('#datetimepicker1').datetimepicker({
+                    format: 'MMM DD YYYY LT'
+                }
+        );
+    });
+</script>
+<script type="text/javascript" charset="utf-8">
+    $(document).ready(function() {
+        var d = new Date();
+        var n = d.getTimezoneOffset();
+        document.getElementById("TZ_Offset").value = n;
+        var enddate = document.getElementById("end_date").value;
+        var ts = moment.utc(enddate);
+        document.getElementById("end_date").value = ts.local().format("MMM DD YYYY LT");
+    });
+</script>
+<script>
     var btn = document.getElementById("myBtn");
     var btn1 = document.getElementById("help");
     var message_field = document.getElementById("message");
@@ -57,15 +94,13 @@
             }
         else {
             message_text.innerHTML = "OOO Assistant: " + message_value + " until " + date_value;    
-                }
+            }
     }
 
     btn1.onclick = function() {
         title_text.innerHTML = "Help";
         message_text.innerHTML = "<b>Enabled:</b> Activates the Out of Office Assistant.<br><b>Direct:</b> Responds to Direct messages.<br><b>Mentions:</b> Responds to messages where you are @Mentioned.<br><br><b>NOTE:</b> If the Out of Office Assistant is disabled but Direct and/or Mentions is active <i>and</i> your Webex Teams status is <b>Out Of Office</b> a generic response will be sent as follows: <b>I'm out of the office.</b>";
+        get_TZOffset();
     }
-
-    </script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+</script>
 {% endblock %}
