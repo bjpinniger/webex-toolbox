@@ -27,31 +27,38 @@
         </div>
     </div>
 </div>
-<div class="container" style="width: 50%;">
-    <h2 style = "text-align: center; ">Out of Office Assistant</h2>
-    <hr>
-    <p></p>
-    <div class="col text-center">
-        <button type="button" id="myBtn" class="btn btn-primary" data-toggle="modal" data-target="#myModal" style = "align-content : center;">Preview Response</button>
-    </div>
-    <form action="" method="post" class="form" role="form">
-        {{ form.csrf_token() }}
-        {{ render_field(form.message) }}
-        {{form.end_date.label}}
-        <div class='input-group date' id='datetimepicker1'>
-            <input type='text' class="form-control" id="end_date" name="end_date" value="{{form.end_date.data}}"/>
-            <span class="input-group-addon">
-                <span class="glyphicon glyphicon-calendar"></span>
-            </span>
+<div class="container">
+     <div class="row">
+        <div class="col-xs-1 col-md-2 col-lg-3"></div>
+        <div class="col-xs-10 col-md-8 col-lg-6">   
+            <h2 style = "text-align: center; ">Out of Office Assistant</h2>
+            <hr>
+            <p></p>
+            <div class="col text-center">
+                <button type="button" id="myBtn" class="btn btn-primary" data-toggle="modal" data-target="#myModal" style = "align-content : center;">Preview Response</button>
+            </div>
+            <form action="" method="post" class="form" role="form">
+                {{ form.csrf_token() }}
+                {{ render_field(form.message) }}
+                {{form.end_date.label}}
+                <div class='input-group date' id='datetimepicker1'>
+                    <input type='text' class="form-control" id="end_date" name="end_date" value="{{form.end_date.data}}"/>
+                    <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div>
+                {{form.OOO_enabled}} {{form.OOO_enabled.label}}
+                {{form.Direct}} {{form.Direct.label}}
+                {{form.Mentions}} {{form.Mentions.label}}
+                <button type="button" id="help" class="btn btn-link" data-toggle="modal" data-target="#myModal"><img src="{{ url_for('static', filename='help-icon-17020.png') }}" style="width: 15pt"></button>
+            <p></p>
+            <p><input type=submit class='btn btn-primary btn-block' value="Submit"></p>
+            <p style="display: none">{{form.TZ_Offset}}</p>
+            <p style="display: none">{{form.TZ_Name}}</p>
+            </form>
         </div>
-        {{form.OOO_enabled}} {{form.OOO_enabled.label}}
-        {{form.Direct}} {{form.Direct.label}}
-        {{form.Mentions}} {{form.Mentions.label}}
-        <button type="button" id="help" class="btn btn-link" data-toggle="modal" data-target="#myModal"><img src="{{ url_for('static', filename='help-icon-17020.png') }}" style="width: 15pt"></button>
-    <p></p>
-    <p><input type=submit class='btn btn-primary btn-block' value="Submit"></p>
-    <p style="display: none">{{form.TZ_Offset}}</p>
-    </form>
+        <div class="col-xs-1 col-md-2 col-lg-3"></div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -71,6 +78,8 @@
     $(document).ready(function() {
         var d = new Date();
         var n = d.getTimezoneOffset();
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        document.getElementById("TZ_Name").value = tz;
         document.getElementById("TZ_Offset").value = n;
         var enddate = document.getElementById("end_date").value;
         var ts = moment.utc(enddate);

@@ -14,6 +14,7 @@
               <h4 class="modal-title">Active Members</h4>
             </div>
             <div class="modal-body">
+                <div id="spinner" class="loader" align="center"></div>
                 <ul id="content" class="list-group"></ul>
             </div>
             <div class="modal-footer">
@@ -24,62 +25,101 @@
         </div>
     </div>
 </div>
-<div class="container" style="width: 50%;">
-    <h2 style = "text-align: center;">Add people to a space</h2>
-    <hr>
-    <p></p>
-    <div class="col text-center">
-        <button type="button" id="myBtn" class="btn btn-primary" data-toggle="modal" data-target="#myModal" style = "align-content : center;">View Members</button>
-    </div>
-
-    <form action="" method="post" class="form" role="form">
-        {{ form.csrf_token() }}
-        <d1>
-            {{ render_field(form.space) }}
-            {{ render_field(form.message) }}
-        </d1>
-        <div data-toggle="fieldset" id="email-fieldset">
-              <button type="button" class="btn btn-primary" data-toggle="fieldset-add-row"
-                                            data-target="#email-fieldset">Add row</button>
-            <p>
-            <table>
-                <col width="95%">
-                <col width="5%">
-    
-                {% for email in form.emails %}
-                    <tr data-toggle="fieldset-entry">
-                        <td>{{ render_field_no_label(email.email_address) }}</td>
-                        <td><button type="button" class="btn btn-primary btn-block" data-toggle="fieldset-remove-row" id="email-{{loop.index0}}-remove">-</button></td>
-                    </tr>
-                {% endfor %}
-            </table>
-            <p>
+<div class="container">
+    <div class="row">
+        <div class="col-xs-1 col-md-2 col-lg-3"></div>
+        <div class="col-xs-10 col-md-8 col-lg-6"> 
+            <h2 style = "text-align: center;">Manage a space</h2>
+            <hr>
+            <p></p>
+            <div class="col text-center">
+                <button type="button" id="myBtn" class="btn btn-primary" data-toggle="modal" data-target="#myModal" style = "align-content : center;">View Members</button>
+                <p></p>
+                <button class='btn btn-primary' onclick="exportTableToCSV('report.csv')">Download to CSV File</button>
+            </div>
+            <form action="" method="post" class="form" role="form">
+                {{ form.csrf_token() }}
+                <dl>
+                    {{ render_field(form.space) }}
+                    {{ render_field(form.message, placeholder='(optional) Enter a message for the new space members...') }}
+                </dl>
+                <div data-toggle="fieldset" id="email-fieldset">
+                    <button type="button" class="btn btn-primary" data-toggle="fieldset-add-row"
+                                                    data-target="#email-fieldset">Add row</button>
+                    <p></p>
+                    <table>
+                        <col width="95%">
+                        <col width="5%">
+            
+                        {% for email in form.emails %}
+                            <tr data-toggle="fieldset-entry">
+                                <td>{{ render_field_no_label(email.email_address, placeholder='Enter an email address...') }}</td>
+                                <td><button type="button" class="btn btn-primary btn-block" data-toggle="fieldset-remove-row" id="email-{{loop.index0}}-remove">-</button></td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                    <p></p>
+                </div>
+                {{ form.hidden_tag() }}
+                <p><input type=submit class='btn btn-primary btn-block' value="Add Users"></p>
+            </form>
         </div>
-        {{ form.hidden_tag() }}
-    <p><input type=submit class='btn btn-primary btn-block' value="Add Users"></p>
-    </form>
-
+        <div class="col-xs-1 col-md-2 col-lg-3"></div>
+    </div>
+</div>
 <script>
 var btn = document.getElementById("myBtn");
 var space = document.getElementById("space");
 var content = document.getElementById("content");
 
 btn.onclick = function() {
+    document.getElementById("spinner").style.display = "";
     while(content.hasChildNodes())
         {
         content.removeChild(content.firstChild);
         }
     spaceId = space.value;    
-        fetch('/members/' + spaceId).then(function(response) {
-            response.json().then(function(data) {
-                for (var user of data.members) {
-                    var listItem = document.createElement('li');
-                    listItem.setAttribute('class','list-group-item');
-                    listItem.innerHTML = (user.member);
-                    content.appendChild(listItem);
-                }
-            })
-        });
+    fetch('/member_details/' + spaceId).then(function(response) {
+        response.json().then(function(data) {
+            document.getElementById("spinner").style.display = "none";
+            for (var user of data.members) {
+                var listItem = document.createElement('li');
+                listItem.setAttribute('class','list-group-item');
+                listItem.innerHTML = ((user.DisplayName) + " - " + (user.Email));
+                content.appendChild(listItem);
+            }
+        })
+    });
+}
+
+function downloadCSV(csv, filename) {
+var csvFile;
+var downloadLink;
+csvFile = new Blob([csv], {type: "text/csv"});
+downloadLink = document.createElement("a");
+downloadLink.download = filename;
+downloadLink.href = window.URL.createObjectURL(csvFile);
+downloadLink.style.display = "none";
+document.body.appendChild(downloadLink);
+downloadLink.click();
+}
+
+function exportTableToCSV(filename) {
+    var csv = [];
+    var row = [];
+    row.push("Name,Email");
+    csv.push(row.join(","));
+    spaceId = space.value;    
+    fetch('/member_details/' + spaceId).then(function(response) {
+        response.json().then(function(data) {
+            for (var user of data.members) {
+                var row = [];
+                row.push((user.DisplayName) + "," + (user.Email));
+                csv.push(row.join(","));
+            }
+        downloadCSV(csv.join("\n"), filename);
+        })
+    });
 }
 </script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>

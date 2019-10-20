@@ -3,22 +3,42 @@
 {% from "_render_field.html" import render_field %}
 
 {% block app_content %}
-<div class="container" style="width: 50%;">
-    <h2 style = "text-align: center;">Delete messages</h2>
-    <hr>
-    <form action="" method="post" class="form" role="form">
-        {{ form.csrf_token() }}
-        <d1>
-            {{ render_field(form.space) }}
-            {{ render_field(form.messages) }}
-        </d1>
-    <p><input type=submit class='btn btn-danger btn-block' value="Delete Messages"></p>
-    </form>
+<div class="container">
+    <div class="row">
+        <div class="col-xs-1 col-md-2 col-lg-3"></div>
+        <div class="col-xs-10 col-md-8 col-lg-6">
+            <h2 style = "text-align: center;">Delete messages</h2>
+            <hr>
+            <form action="" method="post" class="form" role="form">
+                {{ form.csrf_token() }}
+                <dl>
+                    {{ render_field(form.space) }}
+                    {{ render_field(form.messages) }}
+                </dl>
+            <p><input id="submit" type=submit class='btn btn-danger btn-block' value="Delete Messages"></p>
+            </form>
+        </div>
+        <div class="col-xs-1 col-md-2 col-lg-3"></div>
+    </div>
+</div>
+{% endblock %}
 
+{% block scripts %}
+{{ super() }}
+<script>
+$(document).ready(function() {
+    var msgs_select = document.getElementById("messages");
+    if (msgs_select.innerHTML == ""){
+            msgs_select.innerHTML = '<option value="' + "1" + '">' + "No messages for this space..." + '</option>';
+            document.getElementById("submit").disabled=true;
+        }
+});
+</script>
 <script>
 var space_select = document.getElementById("space");
 var msgs_select = document.getElementById("messages");
 space_select.onchange = function()  {
+    msgs_select.innerHTML = '<option value="' + "1" + '">' + "Retrieving messages..." + '</option>';
     spaceId = space_select.value;
     fetch('/messages/' + spaceId).then(function(response) {
         response.json().then(function(data) {
@@ -26,7 +46,14 @@ space_select.onchange = function()  {
             for (var msg of data.messages) {
                 optionHTML += '<option value="' + msg.id + '">' + msg.msgtxt + '</option>';
             }
-            msgs_select.innerHTML = optionHTML;
+            if (optionHTML == ""){
+                msgs_select.innerHTML = '<option value="' + "1" + '">' + "No messages for this space..." + '</option>';
+                document.getElementById("submit").disabled=true;
+            }
+            else {
+                msgs_select.innerHTML = optionHTML;
+                document.getElementById("submit").disabled=false;
+            }
         })
     });
 }

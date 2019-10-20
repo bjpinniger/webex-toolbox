@@ -2,26 +2,47 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 {% from "_render_field.html" import render_field %}
 
+{% block head %}
+  {{ super() }}
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.min.css">
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+{% endblock %}
+
 {% block app_content %}
-<div class="container" style="width: 50%;">
-    <h2 style = "text-align: center;">Webex Reports</h2>
-    <hr>
-    <form action="" method="post" class="form" role="form">
-        {{ form.csrf_token() }}
-        <d1>
-            {{ render_field(form.type) }}
-            {{ render_field(form.start_date) }}
-        </d1>
-    <p><input type=button id="submit" class='btn btn-primary btn-block' value="Submit"></p>
-    </form>
+<div class="container">
+    <div class="row">
+        <div class="col-xs-1 col-md-2 col-lg-3"></div>
+        <div class="col-xs-10 col-md-8 col-lg-6"> 
+            <h2 style = "text-align: center;">Webex Reports</h2>
+            <hr>
+            <form action="" method="post" class="form" role="form">
+                {{ form.csrf_token() }}
+                <dl>
+                    {{ render_field(form.type) }}
+                    <div class='input-group date' id='datetimepicker1'>
+                        <input type='text' class="form-control" id="start_date" name="start_date" value="{{form.start_date.data}}"/>
+                        <span class="input-group-addon">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </dl>
+            <p></p>
+            <p><input type=button id="submit" class='btn btn-primary btn-block' value="Submit"></p>
+            </form>
+        </div>
+        <div class="col-xs-1 col-md-2 col-lg-3"></div>
+    </div>
 </div>
+<div id="spinner" class="loader" align="center"></div>
 <div id="Rows-Group" class="form-group" style = "padding: 10pt;" align="center">
     <select id="maxRows" name="state" class="form-control" style="width:150px;">
         <option value="10">10 rows</option>
         <option value="15">15 rows</option>
         <option value="20">20 rows</option>
-        <option value="30">50 rows</option>  
+        <option value="50">50 rows</option>  
     </select>
+    <p></p>
+    <button class='btn btn-primary' onclick="exportTableToCSV('report.csv')">Download to CSV File</button>
 </div>
 <div id="report" class="container" align="center" style="width: 100%;" >
     <table id="WbxReport" class="table table-bordered table-striped">
@@ -32,16 +53,62 @@
         </nav>
     </div>
 </div>
+{% endblock %}
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
-<script src="static/js/bootstrap.min.js"></script>
+{% block scripts %}
+{{ super() }}
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+<script src="https://code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
+<script type="text/javascript">
+$(function () {
+    $('#datetimepicker1').datetimepicker({
+                format: 'YYYY MM DD HH:mm'
+            });
+});
+</script>
 <script>
 $(document).ready(function() {
     var x = document.getElementById("Rows-Group");
     x.style.display = "none";
+    document.getElementById("spinner").style.display = "none";
 });
 </script>
+<script>
+function downloadCSV(csv, filename) {
+var csvFile;
+var downloadLink;
+// CSV file
+csvFile = new Blob([csv], {type: "text/csv"});
+// Download link
+downloadLink = document.createElement("a");
+// File name
+downloadLink.download = filename;
+// Create a link to the file
+downloadLink.href = window.URL.createObjectURL(csvFile);
+// Hide download link
+downloadLink.style.display = "none";
+// Add the link to DOM
+document.body.appendChild(downloadLink);
+// Click download link
+downloadLink.click();
+}
 
+function exportTableToCSV(filename) {
+    var csv = [];
+    var rows = document.querySelectorAll('#WbxReport tr');
+    
+    for (var i = 0; i < rows.length; i++) {
+        var row = [], cols = rows[i].querySelectorAll("td, th");
+        
+        for (var j = 0; j < cols.length; j++) 
+            row.push(cols[j].innerText);
+        
+        csv.push(row.join(","));        
+    }
+    downloadCSV(csv.join("\n"), filename);
+}
+</script>
 <script>
 var x = document.getElementById("Rows-Group");
 var report_table = document.getElementById("WbxReport");
@@ -50,6 +117,7 @@ var startdate = document.getElementById("start_date");
 var submit_button = document.getElementById("submit");
 
 submit_button.onclick = function()  {
+    document.getElementById("spinner").style.display = "";
     while(report_table.hasChildNodes())
         {
         report_table.removeChild(report_table.firstChild);
@@ -61,6 +129,7 @@ submit_button.onclick = function()  {
     fetch('/reports/'+ Report_Type + '/' + Start_Date).then(function(response) {
         response.json().then(function(data) {
             //display select field
+            document.getElementById("spinner").style.display = "none";
             x.style.display = "";
 
             var body = report_table.create

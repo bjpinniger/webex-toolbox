@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import FieldList, validators, ValidationError
 from wtforms import Form as NoCsrfForm
-from wtforms.fields import StringField, FormField, SubmitField, DateField, SelectField, SelectMultipleField, TextAreaField, BooleanField, IntegerField, DateTimeField
+from wtforms.fields import StringField, FormField, SubmitField, DateField, SelectField, SelectMultipleField, TextAreaField, BooleanField, IntegerField, DateTimeField, PasswordField
 from wtforms.validators import DataRequired, Email, Required
 from datetime import date
 
@@ -33,6 +33,7 @@ class OOOForm(FlaskForm):
     message = TextAreaField('Message')
     end_date = DateTimeField('End Date', validators=[DataRequired()], format='%Y-%m-%d %H:%M')
     TZ_Offset = IntegerField('TZ Offset')
+    TZ_Name = StringField('TZ Offset')
     OOO_enabled = BooleanField('Enabled')
     Direct = BooleanField('Direct')
     Mentions = BooleanField('Mentions')
@@ -41,3 +42,9 @@ class OOOForm(FlaskForm):
 class Webex_Meetings(FlaskForm):
     type = SelectField('Report Type', choices=[('meet', 'Meetings'), ('event', 'Events')])
     start_date = DateField('Start Date', default=date.today)
+
+class SettingsForm(FlaskForm):
+    site_name = StringField('Site Name', render_kw={'autofocus': True})
+    user_email = StringField('User Email', validators=[Email()])
+    user_pwd = PasswordField('Password')
+    submit = SubmitField()

@@ -3,7 +3,6 @@ import json
 from xml.etree import ElementTree as ET
 from app import app
 from config import Config
-app.config.from_object(Config)
 
 webex_admin = Config.webex_admin
 webex_pwd = Config.webex_pwd
@@ -34,7 +33,6 @@ def create_meeting(MRN):
             root = ET.fromstring(response.text)
             meetingID_resp = root.find('.//meet:meetingkey', ns)
             meetingID = meetingID_resp.text
-            print ("Meeting ID = "+ meetingID)
             result, SIP_URI = get_meeting(meetingID)
         else:
             result = "Failure: Status Code " + str(response.status_code)
@@ -65,7 +63,6 @@ def get_meeting(meetingID):
             root = ET.fromstring(response.text)
             SIPURI_resp = root.find('.//meet:sipURL', ns)
             SIP_URI = SIPURI_resp.text
-            print ("SIP URI = "+ SIP_URI)
         else:
             result = "Failure: Status Code " + str(response.status_code)
     except requests.exceptions.ConnectionError:
@@ -73,18 +70,22 @@ def get_meeting(meetingID):
     return result, SIP_URI
 
 
-def get_meetings(type, startdate):
-    year, month, day = startdate.split("-")
-    start_date = (month + "/" + day + "/" + year)
-    key_list = list()
-    title_list = list()
-    host_list = list()
-    startdate_list = list()
-    duration_list = list()
+def get_meetings(type, startdate, webex_settings):
+    try:
+        site_name = webex_settings['site_name']
+        user_email = webex_settings['user_email']
+        user_pwd = webex_settings['user_pwd']
+    except:
+        site_name = webex_site
+        user_email = webex_admin
+        user_pwd = webex_pwd
+    year, month, day, time = startdate.split(" ")
+    start_date = (month + "/" + day + "/" + year + " " + time + ":00")
+    mtgArray = []
     if type == "meet":
-        payload = '<serv:message xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n\t<header>\n\t\t<securityContext>\n\t\t\t<webExID>%s</webExID>\n\t\t\t<password>%s</password>\n\t\t\t<siteName>%s</siteName>\n\t\t</securityContext>\n\t</header>\n\t<body>\n\t\t<bodyContent xsi:type=\"java:com.webex.service.binding.meeting.LstsummaryMeeting\">\n\t\t\t<order>\n\t\t\t\t<orderBy>STARTTIME</orderBy>\n\t\t\t</order>\n\t\t\t<dateScope>\n\t\t\t\t<startDateStart>%s 00:00:00</startDateStart>\n\t\t\t</dateScope>\n\t\t</bodyContent>\n\t</body>\n</serv:message>' % (webex_admin, webex_pwd, webex_site, start_date)
+        payload = '<serv:message xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n\t<header>\n\t\t<securityContext>\n\t\t\t<webExID>%s</webExID>\n\t\t\t<password>%s</password>\n\t\t\t<siteName>%s</siteName>\n\t\t</securityContext>\n\t</header>\n\t<body>\n\t\t<bodyContent xsi:type=\"java:com.webex.service.binding.meeting.LstsummaryMeeting\">\n\t\t\t<order>\n\t\t\t\t<orderBy>STARTTIME</orderBy>\n\t\t\t</order>\n\t\t\t<dateScope>\n\t\t\t\t<startDateStart>%s</startDateStart>\n\t\t\t</dateScope>\n\t\t</bodyContent>\n\t</body>\n</serv:message>' % (user_email, user_pwd, site_name, start_date)
     else:
-        payload = '<serv:message xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n\t<header>\n\t\t<securityContext>\n\t\t\t<webExID>%s</webExID>\n\t\t\t<password>%s</password>\n\t\t\t<siteName>%s</siteName>\n\t\t</securityContext>\n\t</header>\n\t<body>\n\t\t<bodyContent\n\t\t\txsi:type=\"java:com.webex.service.binding.event.LstsummaryEvent\">\n\t\t\t\t<listControl>\t\n\t\t\t\t\t<startFrom>1</startFrom>\n\t\t\t\t\t<maximumNum>1000</maximumNum>\n\t\t\t\t\t<listMethod>OR</listMethod>\n\t\t\t\t</listControl>\n\t\t\t<order>\n\t\t\t\t<orderBy>HOSTWEBEXID</orderBy>\n\t\t\t\t<orderAD>ASC</orderAD>\n\t\t\t\t<orderBy>EVENTNAME</orderBy>\n\t\t\t\t<orderAD>ASC</orderAD>\n\t\t\t\t<orderBy>STARTTIME</orderBy>\n\t\t\t\t<orderAD>ASC</orderAD>\n\t\t\t</order>\n\t\t\t<dateScope>\n\t\t\t\t<startDateStart>%s 00:00:00</startDateStart>\n\t\t\t</dateScope>\n\t\t</bodyContent>\n\t</body>\n</serv:message>' % (webex_admin, webex_pwd, webex_site, start_date)
+        payload = '<serv:message xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n\t<header>\n\t\t<securityContext>\n\t\t\t<webExID>%s</webExID>\n\t\t\t<password>%s</password>\n\t\t\t<siteName>%s</siteName>\n\t\t</securityContext>\n\t</header>\n\t<body>\n\t\t<bodyContent\n\t\t\txsi:type=\"java:com.webex.service.binding.event.LstsummaryEvent\">\n\t\t\t\t<listControl>\t\n\t\t\t\t\t<startFrom>1</startFrom>\n\t\t\t\t\t<maximumNum>1000</maximumNum>\n\t\t\t\t\t<listMethod>OR</listMethod>\n\t\t\t\t</listControl>\n\t\t\t<order>\n\t\t\t\t<orderBy>HOSTWEBEXID</orderBy>\n\t\t\t\t<orderAD>ASC</orderAD>\n\t\t\t\t<orderBy>EVENTNAME</orderBy>\n\t\t\t\t<orderAD>ASC</orderAD>\n\t\t\t\t<orderBy>STARTTIME</orderBy>\n\t\t\t\t<orderAD>ASC</orderAD>\n\t\t\t</order>\n\t\t\t<dateScope>\n\t\t\t\t<startDateStart>%s</startDateStart>\n\t\t\t</dateScope>\n\t\t</bodyContent>\n\t</body>\n</serv:message>' % (user_email, user_pwd, site_name, start_date)
     headers = {
         'Content-Type': "text/plain",
         'Accept': "*/*",
@@ -104,16 +105,19 @@ def get_meetings(type, startdate):
             if response.status_code == 200:
                 result = "Success"
                 tree=ET.fromstring(response.text)
-                for key in tree.findall('.//meet:meetingKey', ns):
-                    key_list.append(key.text)
-                for title in tree.findall('.//meet:confName', ns):
-                    title_list.append(title.text)
-                for host in tree.findall('.//meet:hostWebExID', ns):
-                    host_list.append(host.text)
-                for startdate in tree.findall('.//meet:startDate', ns):
-                    startdate_list.append(startdate.text)
-                for duration in tree.findall('.//meet:duration', ns):
-                    duration_list.append(duration.text)
+                for meet in tree.findall('.//meet:meeting', ns):
+                    key = (meet.find('.//meet:meetingKey', ns))
+                    title = (meet.find('.//meet:confName', ns))
+                    host = (meet.find('.//meet:hostWebExID', ns))
+                    startdate = (meet.find('.//meet:startDate', ns))
+                    duration = (meet.find('.//meet:duration', ns))
+                    mtgObj = {}
+                    mtgObj['key'] = key.text
+                    mtgObj['title'] = title.text
+                    mtgObj['host'] = host.text
+                    mtgObj['startdate'] = startdate.text
+                    mtgObj['duration'] = duration.text
+                    mtgArray.append(mtgObj)
             else:
                 result = "Failure: Status Code " + str(response.status_code)
         else:
@@ -123,18 +127,21 @@ def get_meetings(type, startdate):
             if response.status_code == 200:
                 result = "Success"
                 tree=ET.fromstring(response.text)
-                for key in tree.findall('.//event:sessionKey', ns):
-                    key_list.append(key.text)
-                for title in tree.findall('.//event:sessionName', ns):
-                    title_list.append(title.text)
-                for host in tree.findall('.//event:hostWebExID', ns):
-                    host_list.append(host.text)
-                for startdate in tree.findall('.//event:startDate', ns):
-                    startdate_list.append(startdate.text)
-                for duration in tree.findall('.//event:duration', ns):
-                    duration_list.append(duration.text)
+                for event in tree.findall('.//event:event', ns):
+                    key = (event.find('.//event:sessionKey', ns))
+                    title = (event.find('.//event:sessionKey', ns))
+                    host = (event.find('.//event:hostWebExID', ns))
+                    startdate = (event.find('.//event:startDate', ns))
+                    duration = (event.find('.//event:duration', ns))
+                    mtgObj = {}
+                    mtgObj['key'] = key.text
+                    mtgObj['title'] = title.text
+                    mtgObj['host'] = host.text
+                    mtgObj['startdate'] = startdate.text
+                    mtgObj['duration'] = duration.text
+                    mtgArray.append(mtgObj)
             else:
                 result = "Failure: Status Code " + str(response.status_code)
     except requests.exceptions.ConnectionError:
         result = "Failed to connect to the Webex Service"
-    return result, key_list, title_list, host_list, startdate_list, duration_list
+    return result, mtgArray

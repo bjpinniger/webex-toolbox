@@ -4,36 +4,41 @@
 {% from "_render_field_no_label.html" import render_field_no_label %}
 
 {% block app_content %}
-<div class="container" style="width: 50%;">
-    <h2 style = "text-align: center;">Create a new Space</h2>
-    <hr>
-    <form action="" method="post" class="form" role="form">
-        {{ form.csrf_token() }}
-        <d1>
-            {{ render_field(form.space, placeholder='Enter the new space name...') }}
-            {{ render_field(form.message) }}
-        </d1>
-        <div data-toggle="fieldset" id="email-fieldset">
-                <button type="button" class="btn btn-primary" data-toggle="fieldset-add-row"
-                                              data-target="#email-fieldset">Add row</button>
-              <p>
-              <table>
-                  <col width="95%">
-                  <col width="5%">
-      
-                  {% for email in form.emails %}
-                      <tr data-toggle="fieldset-entry">
-                          <td>{{ render_field_no_label(email.email_address) }}</td>
-                          <td><button type="button" class="btn btn-primary btn-block" data-toggle="fieldset-remove-row" id="email-{{loop.index0}}-remove">-</button></td>
-                      </tr>
-                  {% endfor %}
-              </table>
-              <p>
-          </div>
-          {{ form.hidden_tag() }}
-      <p><input type=submit class='btn btn-primary btn-block' value="Add Users"></p>
-      </form>
-  
-      <script src="https://code.jquery.com/jquery-2.1.4.js"></script>
-      <script src="{{ url_for("static", filename="js/page.js") }}"></script>
+<div class="container">
+    <div class="row">
+        <div class="col-xs-1 col-md-2 col-lg-3"></div>
+        <div class="col-xs-10 col-md-8 col-lg-6">
+            <h2 style = "text-align: center;">Create a new Space</h2>
+            <hr>
+            <form action="" method="post" class="form" role="form">
+                {{ form.csrf_token() }}
+                <dl>
+                    {{ render_field(form.space, placeholder='Enter the new space name...') }}
+                    {{ render_field(form.message, placeholder='(optional) Enter a message for the new space members...') }}
+                </dl>
+                <div data-toggle="fieldset" id="email-fieldset">
+                        <button type="button" class="btn btn-primary" data-toggle="fieldset-add-row"
+                                                    data-target="#email-fieldset">Add row</button>
+                    <p></p>
+                    <table>
+                        <col width="95%">
+                        <col width="5%">
+            
+                        {% for email in form.emails %}
+                            <tr data-toggle="fieldset-entry">
+                                <td>{{ render_field_no_label(email.email_address, placeholder='Enter an email address...') }}</td>
+                                <td><button type="button" class="btn btn-primary btn-block" data-toggle="fieldset-remove-row" id="email-{{loop.index0}}-remove">-</button></td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                    <p></p>
+                </div>
+                {{ form.hidden_tag() }}
+            <p><input type=submit class='btn btn-primary btn-block' value="Add Users"></p>
+            </form>
+        </div>
+        <div class="col-xs-1 col-md-2 col-lg-3"></div>
+    </div>  
+<script src="https://code.jquery.com/jquery-2.1.4.js"></script>
+<script src="{{ url_for("static", filename="js/page.js") }}"></script>
 {% endblock %}
