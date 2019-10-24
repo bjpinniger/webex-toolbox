@@ -33,13 +33,19 @@
             <hr>
             <p></p>
             <div class="col text-center">
-                <button type="button" id="myBtn" class="btn btn-primary" data-toggle="modal" data-target="#myModal" style = "align-content : center;">View Members</button>
-                <p></p>
-                <button class='btn btn-primary' onclick="exportTableToCSV('report.csv')">Download to CSV File</button>
+                <div class="btn-toolbar" style="justify-content: center; display: flex;">
+                    <button type="button" id="myBtn" class="btn btn-primary" data-toggle="modal" data-target="#myModal" style = "align-content : center;">View Members</button>
+                    <button class='btn btn-primary' onclick="exportTableToCSV('report.csv')">Download to CSV File</button>
+                    <button class='btn btn-primary' onclick="myFn()">Submit Filter</button>
+                    <button class='btn btn-primary' onClick="window.location.reload()">Remove Filter</button>
+                </div>
+            <p></p>
             </div>
-            <form action="" method="post" class="form" role="form">
+            <form action="" method="post" class="form" role="form" id="myForm">
                 {{ form.csrf_token() }}
                 <dl>
+                    <input type="text" class="form-control" id="filter" placeholder='Enter a filter...')>
+                    <p></p>
                     {{ render_field(form.space) }}
                     {{ render_field(form.message, placeholder='(optional) Enter a message for the new space members...') }}
                 </dl>
@@ -71,6 +77,27 @@
 var btn = document.getElementById("myBtn");
 var space = document.getElementById("space");
 var content = document.getElementById("content");
+var PATTERN = document.getElementById("filter");
+
+function resetForm(){
+    console.log ("reset form")
+    document.getElementById("myForm").reset();
+}
+
+function myFn(){
+    var myOptions = space.options;
+    var numberofitems = myOptions.length;
+    var optionHTML = '';
+    var i;
+    for (i=1;i<=numberofitems;i++){
+        var Option_Text = (myOptions[i-1].innerText);
+        var myOptionValue = myOptions[i-1].value;
+        if (Option_Text.includes(PATTERN.value)){
+            optionHTML += '<option value="' + myOptionValue + '">' + Option_Text + '</option>';
+        }
+    }
+    space.innerHTML = optionHTML;
+}
 
 btn.onclick = function() {
     document.getElementById("spinner").style.display = "";

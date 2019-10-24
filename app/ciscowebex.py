@@ -40,7 +40,7 @@ def get_oauthuser_info(access_token):
 
 def get_rooms(user_token, person_ID, room_filter):
     api = WebexTeamsAPI(access_token=user_token) 
-    rooms = api.rooms.list(type='group', sortBy='created')
+    rooms = api.rooms.list(type='group', sortBy='lastactivity')
     if room_filter == "creator":
         room_list = [(room.id,room.title) for room in rooms if room.creatorId == person_ID]
     else:
