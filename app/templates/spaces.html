@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% from "_render_field_no_label.html" import render_field_no_label %}
+
+{% block head %}
+  {{ super() }}
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+{% endblock %}
+
+{% block app_content %}
+<div class="container">
+        <div class="modal fade" id="myModal" role="dialog">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal">&times;</button>
+                  <h4 class="modal-title">Retrieving your spaces...</h4>
+                </div>
+                <div class="modal-body">
+                    <div id="spinner" class="loader" align="center"></div>
+                    <h5 id="model-text" class="text-center"><i>spaces updated</i></h5>
+                    <ul id="content" class="list-group"></ul>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+              </div>
+            </div>
+        </div>
+    </div>
+<div class="container" align="center">
+  <h2>
+      {% if avatar|length == 0 %}
+        <img src="{{ url_for('static', filename='DefaultAvatar.png') }}" alt="default avatar" style="width:42px;height:42px;">
+      {% else %}
+        <img src="{{ avatar }}" alt="avatar" style="width:42px;height:42px;" class='img-circle'>
+      {% endif %}
+        Welcome {{Display_Name}}!</h2>
+</div>
+<div class="container">
+    <div class="row" style="padding: 10pt;">
+            <div class="col-xs-2 col-md-3 col-lg-4"></div>
+                <div class="col-xs-8 col-md-6 col-lg-4 text-center">
+                    <button type="button" class="btn btn-link" id="update_spaces" data-toggle="modal" data-target="#myModal"><img src="{{ url_for('static', filename='icons8-update_left_rotation.png') }}" style="width: 45pt"></button>
+                    <p></p>
+                    <h5 class="text-center"><strong>Get/Refresh Spaces</strong><br><br><i>if you have a lot of spaces this might take a while...</i></h5>
+                    <p></p>
+                </div>
+            <div class="col-xs-2 col-md-3 col-lg-4"></div>
+        </div>
+    <div class="row">
+        <div class="col-md-4 text-center" style="padding: 10pt;">
+            <a href="{{ url_for('managespace') }}" title="Manage Spaces"><img src="{{ url_for('static', filename='icons8-manage.png') }}" width="45" alt="Manage a Space"/></a>
+            <h5 class="text-center"><strong>Manage A Space</strong><br><br><i>add people to a space, view or download members to a file</i></h5>
+        </div>
+        <div class="col-md-4 text-center" style="padding: 10pt;">
+            <a href="{{ url_for('leavespace') }}" title="Leave Spaces"><img src="{{ url_for('static', filename='icons8-exit.png') }}" width="45" alt="Leave Spaces"/></a>
+            <h5 class="text-center"><strong>Leave Spaces</strong><br><br><i>select spaces to leave</i></h5>
+        </div>
+        <div class="col-md-4 text-center" style="padding: 10pt;">
+            <a href="{{ url_for('deletespace') }}" title="Delete Spaces"><img src="{{ url_for('static', filename='icons8-delete_trash.png') }}" width="45" alt="Delete Spaces"/></a>
+            <h5 class="text-center"><strong>Delete Spaces</strong><br><br><i>delete spaces that you created</i></h5>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-3"></div>
+        <div class="col-md-3 text-center" style="padding: 10pt;">
+            <a href="{{ url_for('addspace') }}" title="Add a Space"><img src="{{ url_for('static', filename='icons8-add.png') }}" width="45" alt="Add a Space"/></a>
+            <h5 class="text-center"><strong>Add A Space</strong><br><br><i>create a new space and add people</i></h5>
+        </div>
+        <div class="col-md-3 text-center" style="padding: 10pt;">
+            <a href="{{ url_for('deletemessages') }}" title="Delete Messages"><img src="{{ url_for('static', filename='icons8-delete_message.png') }}" width="45" alt="Delete Messages"/></a>
+            <h5 class="text-center"><strong>Delete Messages</strong><br><br><i>delete your messages from a space</i></h5>
+        </div>
+        <div class="col-md-3"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+var btn = document.getElementById("update_spaces");
+
+btn.onclick = function() {
+    document.getElementById("model-text").style.display = "none";
+    document.getElementById("spinner").style.display = "";
+    while(content.hasChildNodes())
+        {
+        content.removeChild(content.firstChild);
+        }    
+    fetch('/fetch_spaces').then(function(response) {
+        response.json().then(function(data) {
+            document.getElementById("spinner").style.display = "none";
+            document.getElementById("model-text").style.display = "";
+        })
+    });
+}
+</script>
+{% endblock %}

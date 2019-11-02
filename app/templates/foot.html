@@ -1,27 +1,20 @@
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-xs-1 col-md-2 col-lg-3"></div>
-        <div class="col-xs-10 col-md-8 col-lg-6">
-          <div class="btn-group-vertical" style="width: 100%">
-          <!-- <div class="btn-group-justified"> -->
-            <a href="{{ url_for('ooomessage') }}" class="btn btn-primary btn-block" role="button">Out of Office</a>
-            <p></p>
-            <a  href="{{ url_for('selectspace') }}" class="btn btn-primary btn-block" role="button">Manage a space</a>
-            <p></p>
-            <a href="{{ url_for('addspace') }}" class="btn btn-primary btn-block" role="button">Create a new space</a>
-            <p></p>
-            <a href="{{ url_for('leavespace') }}" class="btn btn-primary btn-block" role="button">Leave spaces</a>   
-            <p></p>
-            <a href="{{ url_for('deletespace') }}" class="btn btn-primary btn-block" role="button">Delete spaces</a>   
-            <p></p>
-            <a href="{{ url_for('deletemessages') }}" class="btn btn-primary btn-block" role="button">Delete messages</a>
-            <p></p>
-            <a href="{{ url_for('meetings') }}" class="btn btn-primary btn-block" role="button">Webex Reports</a>
-          </div>
-        </div>
-        <div class="col-xs-1 col-md-2 col-lg-3"></div>
-    </div>
-    <div style="display:block" align="right" class="navbar navbar-fixed-bottom">
-        <a href="{{ url_for('settings') }}" title="Image from freeiconspng.com"><img src="{{ url_for('static', filename='settings-icon-14958.png') }}" width="50" alt="Library Settings Icon" /></a>
-    </div>
+<div class="container">
+  <p></p>
+  <div class="row">
+      <div class="col-md-4 text-center" style="padding: 10pt;">
+          <a href="{{ url_for('spaces') }}" title="Spaces"><img src="{{ url_for('static', filename='icons8-group.png') }}" width="45" alt="Spaces"/></a>
+        <h5 class="text-center"><strong>Manage Spaces</strong><br><br><i>manage your spaces</i></h5>
+        <p></p>
+      </div>
+      <div class="col-md-4 text-center" style="padding: 10pt;">
+          <a href="{{ url_for('ooomessage') }}" title="Out of Office"><img src="{{ url_for('static', filename='icons8-exit_sign.png') }}" width="45" alt="Out of Office"/></a>
+        <h5 class="text-center"><strong>Out of Office</strong><br><br><i>manage your out of office settings</i></h5>
+        <p></p>
+      </div>
+      <div class="col-md-4 text-center" style="padding: 10pt;">
+          <a href="{{ url_for('meetings') }}" title="Webex Reports"><img src="{{ url_for('static', filename='icons8-report.png') }}" width="45" alt="Webex Reports"/></a>
+        <h5 class="text-center"><strong>Webex Reports</strong><br><br><i>view reports for webex meetings</i></h5>
+        <p></p>
+      </div>          
+  </div>
 </div>

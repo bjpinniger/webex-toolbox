@@ -13,7 +13,7 @@
                 {{ form.csrf_token() }}
                 <dl>
                     {{ render_field(form.space) }}
-                    {{ render_field(form.messages) }}
+                    {{ render_field(form.messages, size=15) }}
                 </dl>
             <p><input id="submit" type=submit class='btn btn-danger btn-block' value="Delete Messages"></p>
             </form>

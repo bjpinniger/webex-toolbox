@@ -4,12 +4,14 @@ from wtforms import Form as NoCsrfForm
 from wtforms.fields import StringField, FormField, SubmitField, DateField, SelectField, SelectMultipleField, TextAreaField, BooleanField, IntegerField, DateTimeField, PasswordField
 from wtforms.validators import DataRequired, Email, Required
 from datetime import date
+from app.custom_forms import MultiCheckboxField
 
 class EmailsForm(FlaskForm):
     email_address = StringField('Email Address')
 
-class SelectSpaceForm(FlaskForm):
+class ManageSpaceForm(FlaskForm):
     space = SelectField('Space', render_kw={'autofocus': True})
+    filter = StringField('Filter')
     message = TextAreaField('Message')
     emails = FieldList(FormField(EmailsForm), min_entries = 2)
     submit = SubmitField()
@@ -22,11 +24,14 @@ class AddSpaceForm(FlaskForm):
 
 class DeleteSpaceForm(FlaskForm):
     space = SelectMultipleField('Space')
+    filter = StringField('Filter')
     submit = SubmitField()
 
 class DeleteMessagesForm(FlaskForm):
     space = SelectField('Space', render_kw={'autofocus': True})
+    filter = StringField('Filter')
     messages = SelectMultipleField('Messages')
+    #messages = MultiCheckboxField('Messages')
     submit = SubmitField()
 
 class OOOForm(FlaskForm):
@@ -47,4 +52,7 @@ class SettingsForm(FlaskForm):
     site_name = StringField('Site Name', render_kw={'autofocus': True})
     user_email = StringField('User Email', validators=[Email()])
     user_pwd = PasswordField('Password')
+    sortBy = SelectField('Sort By', choices=[('created', 'Created'), ('lastactivity', 'Last Activity')])
+    maxResults = IntegerField('Max Results')
     submit = SubmitField()
+

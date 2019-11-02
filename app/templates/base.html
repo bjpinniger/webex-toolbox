@@ -5,8 +5,23 @@
 {% endblock %}
 
 {% block navbar %}
-    <nav class="navbar" style = "text-align: center;">   
-        <div>Webex Toolbox: <a href="{{ url_for('logout') }}">Logout</a> <a href="{{ url_for('home') }}">Home</a></div>
+    <nav class="navbar" style="padding: 10pt;">
+        <div class="row">
+            <div class="col-xs-1 col-md-2 col-lg-3"></div>
+            <div class="col-xs-10 col-md-8 col-lg-6">
+                <div class="col text-center">
+                    <div class="btn-toolbar" style="justify-content: center; display: flex;">
+                        <a href="{{ url_for('home') }}" style="margin-right:15px;" title="Home"><img src="{{ url_for('static', filename='icons8-a_home.png') }}" width="25" alt="Home"/></a>
+                        <p></p>
+                        <a href="{{ url_for('spaces') }}" style="margin-right:15px;" title="Spaces"><img src="{{ url_for('static', filename='icons8-group.png') }}" width="25" alt="Spaces"/></a>
+                        <a href="{{ url_for('settings') }}" style="margin-right:15px;" title="Settings"><img src="{{ url_for('static', filename='icons8-settings.png') }}" width="25" alt="Settings"/></a>
+                        <a href="{{ url_for('logout') }}" title="Logout"><img src="{{ url_for('static', filename='icons8-logout_rounded_up.png') }}" width="25" alt="Logout"/></a>          
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-1 col-md-2 col-lg-3"></div>
+        </div>
+        <hr>
     </nav>
 {% endblock %}
 
@@ -16,6 +31,7 @@
 {% endblock %}
 
 {% block content %}
+<link href="https://fonts.googleapis.com/css?family=Raleway&display=swap" rel="stylesheet">
 <style>
         
     table {
@@ -27,6 +43,10 @@
             height: 25px;
             vertical-align: top;
         }
+
+        body{
+        font-family: 'Raleway', sans-serif;
+    }
 
     .loader {
         border: 8px solid #f3f3f3;

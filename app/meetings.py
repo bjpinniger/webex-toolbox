@@ -79,6 +79,10 @@ def get_meetings(type, startdate, webex_settings):
         site_name = webex_site
         user_email = webex_admin
         user_pwd = webex_pwd
+    if user_pwd == "":
+        site_name = webex_site
+        user_email = webex_admin
+        user_pwd = webex_pwd
     year, month, day, time = startdate.split(" ")
     start_date = (month + "/" + day + "/" + year + " " + time + ":00")
     mtgArray = []

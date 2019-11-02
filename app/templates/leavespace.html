@@ -2,8 +2,12 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 {% from "_render_field.html" import render_field %}
 
+{% block head %}
+  {{ super() }}
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+{% endblock %}
+
 {% block app_content %}
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
 <div class="container">
     <div class="modal fade" id="myModal" role="dialog">
         <div class="modal-dialog">
@@ -28,12 +32,28 @@
     <div class="row">
         <div class="col-xs-1 col-md-2 col-lg-3"></div>
         <div class="col-xs-10 col-md-8 col-lg-6">
-            <h2 style = "text-align: center;">Leave spaces</h2>
-            <hr>
+            <h2 style = "text-align: center; padding: 10pt;">Leave spaces</h2>
             <p></p>
             <div class="col text-center">
                 <button type="button" id="myBtn" class="btn btn-primary" data-toggle="modal" data-target="#myModal" style = "align-content : center;">View Members</button>
             </div>
+            <p></p>
+        </div>
+        <div class="col-xs-3 col-md-5"></div>
+    </div>
+    <div class="row">
+        <div class="col-xs-1 col-md-2 col-lg-3"></div>
+            <div class="col-xs-10 col-md-8 col-lg-6"> 
+                <input type="text" class="form-control" id="filter" placeholder='Enter a filter...'>
+                <p></p>
+                <button class='btn btn-primary btn-block' id="filter_btn" onclick="myFn()">Apply Filter</button>
+                <p></p>
+            </div>
+        <div class="col-xs-1 col-md-2 col-lg-3"></div>
+    </div>
+    <div class="row">
+        <div class="col-xs-1 col-md-2 col-lg-3"></div>
+            <div class="col-xs-10 col-md-8 col-lg-6"> 
             <form action="" method="post" class="form" role="form">
                 {{ form.csrf_token() }}
                 <dl>
@@ -41,45 +61,12 @@
                 </dl>
             <p><input type=submit class='btn btn-danger btn-block' value="Leave Space"></p>
             </form>
-        </div>
+            </div>
         <div class="col-xs-1 col-md-2 col-lg-3"></div>
     </div>
 </div>
-<script>
-var btn = document.getElementById("myBtn");
-var space = document.getElementById("space");
-var content = document.getElementById("content");
-var warning = document.getElementById("warning");
 
-btn.onclick = function() {
-    spaceID = space.value;
-    console.log(spaceID.length);
-    if(spaceID.length == 0){
-        document.getElementById("spinner").style.display = "none";
-        warning.innerHTML = "Select a space to see the active members.";
-        }
-    else {
-        document.getElementById("spinner").style.display = "";
-        warning.innerHTML = '';
-        while(content.hasChildNodes())
-            {
-            content.removeChild(content.firstChild);
-            }
-        spaceId = space.value;    
-        fetch('/member_details/' + spaceId).then(function(response) {
-        response.json().then(function(data) {
-            document.getElementById("spinner").style.display = "none";
-            for (var user of data.members) {
-                var listItem = document.createElement('li');
-                listItem.setAttribute('class','list-group-item');
-                listItem.innerHTML = ((user.DisplayName) + " - " + (user.Email));
-                content.appendChild(listItem);
-                }
-            })
-        });
-    }
-}
-</script>
+<script src="{{ url_for("static", filename="js/spaces.js") }}"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
 {% endblock %}

@@ -3,7 +3,7 @@ import json
 from datetime import date, datetime, timedelta
 from webexteamssdk import WebexTeamsAPI, ApiError
 from config import Config
-from app.extensions import get_countries, get_timezones, update_OOO, update_local, update_UTC, get_TZ_fromPhone
+from app.extensions import get_countries, get_timezones, update_OOO, update_local, update_UTC, get_TZ_fromPhone, get_settings
 
 BOT_Token = Config.BOT_TOKEN
 
@@ -31,18 +31,36 @@ def get_oauthuser_info(access_token):
     emailID = results["emails"][0]
     displayName = results["displayName"]
     status = results["status"]
+    try:
+        avatar = results["avatar"]
+    except:
+        avatar = ""
     phone_nums = []
     try:
         phone_nums = [phone["value"] for phone in results["phoneNumbers"] if phone["type"] == "work"]
     except:
         result = "failure"
-    return personID, emailID, displayName, status, phone_nums
+    return personID, emailID, displayName, status, phone_nums, avatar
 
-def get_rooms(user_token, person_ID, room_filter):
+def get_rooms(user_token, person_ID, creator, room_filter):
     api = WebexTeamsAPI(access_token=user_token) 
-    rooms = api.rooms.list(type='group', sortBy='lastactivity')
-    if room_filter == "creator":
+    settings = get_settings(person_ID)
+    try:
+        sortBy = settings['sortBy']
+        maxResults = settings['maxResults']
+    except:
+        sortBy='lastactivity'
+        maxResults = 0
+    if maxResults > 0:
+        rooms = api.rooms.list(type='group', sortBy=sortBy, max=maxResults)
+    else:
+        rooms = api.rooms.list(type='group', sortBy=sortBy)
+    if creator and len(room_filter) > 0:
+        room_list = [(room.id,room.title) for room in rooms if room.creatorId == person_ID and room_filter in room.title]
+    elif creator:
         room_list = [(room.id,room.title) for room in rooms if room.creatorId == person_ID]
+    elif len(room_filter) > 0:
+        room_list = [(room.id,room.title) for room in rooms if room_filter in room.title]
     else:
         room_list = [(room.id,room.title) for room in rooms]
     return room_list
@@ -221,22 +239,32 @@ def OOO_webhook(person_ID, accesstoken, webhookURI, webhookID_D, webhookID_M, me
     return ''
 
 def get_messages(user_token, spaceID, personID, getList):
-    api = WebexTeamsAPI(access_token=user_token)
+    url = "https://api.ciscospark.com/v1/messages"
+    querystring = {"roomId": spaceID}
+    headers = {
+        'Authorization': "Bearer " + user_token
+        }
     try:
-        msgs = api.messages.list(roomId=spaceID,max=50)
-        msgArray = []
-        if getList:
-            msgArray = [(msg.id,msg.text) for msg in msgs if msg.personId == personID]
-        else:
-            for msg in msgs:
-                if msg.personId == personID:
-                    msgObj = {}
-                    msgObj['id'] = msg.id
-                    msgObj['msgtxt'] = msg.text
-                    msgArray.append(msgObj)
+        response = requests.request("GET", url, headers=headers, params=querystring)
+        results = json.loads(response.text)
+        messages = results["items"]
         result = "Success"
     except ApiError as error:
         result = "There was a problem getting the messages."
+    msgArray = []
+    if getList:
+        for msg in messages:
+            if msg["personId"] == personID:
+                message = (msg["id"],msg["text"])
+                msgArray.append(message)
+    else:
+        for msg in messages:
+            if msg["personId"] == personID:
+                msgObj = {}
+                msgObj['id'] = msg["id"]
+                msgObj['msgtxt'] = msg["text"]
+                msgArray.append(msgObj)
+    result = "Success"
     return result, msgArray
 
 def delete_message(user_token, msgID):

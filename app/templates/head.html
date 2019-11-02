@@ -5,8 +5,23 @@
 {% endblock %}
 
 {% block navbar %}
-    <nav class="navbar">   
-        <div style = "text-align: center;">Webex Toolbox: <a href="{{ url_for('logout') }}">Logout</a> <a href="{{ url_for('home') }}">Home</a></div>
+    <nav class="navbar" style="padding: 10pt;">
+        <div class="row">
+            <div class="col-xs-1 col-md-2 col-lg-3"></div>
+            <div class="col-xs-10 col-md-8 col-lg-6">
+                <div class="col text-center">
+                    <div class="btn-toolbar" style="justify-content: center; display: flex;">
+                        <a href="{{ url_for('home') }}" style="margin-right:15px;" title="Home"><img src="{{ url_for('static', filename='icons8-a_home.png') }}" width="25" alt="Home"/></a>
+                        <p></p>
+                        <a href="{{ url_for('spaces') }}" style="margin-right:15px;" title="Spaces"><img src="{{ url_for('static', filename='icons8-group.png') }}" width="25" alt="Spaces"/></a>
+                        <a href="{{ url_for('settings') }}" style="margin-right:15px;" title="Settings"><img src="{{ url_for('static', filename='icons8-settings.png') }}" width="25" alt="Settings"/></a>
+                        <a href="{{ url_for('logout') }}" title="Logout"><img src="{{ url_for('static', filename='icons8-logout_rounded_up.png') }}" width="25" alt="Logout"/></a>          
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-1 col-md-2 col-lg-3"></div>
+        </div>
+        <hr>
     </nav>
 {% endblock %}
 
@@ -16,19 +31,22 @@
 {% endblock %}
 
 {% block content %}
-<style>
-    table, td, th {
-    border: 1px solid;
-    border-collapse: collapse;
-    width: 50%;
-    padding: 5px;
-    height: 50px;
-    vertical-align: center;
-    text-align: center;
-    }
+    <link href="https://fonts.googleapis.com/css?family=Raleway&display=swap" rel="stylesheet">
+    <style>
+        table, td, th {
+        border: 1px solid;
+        border-collapse: collapse;
+        width: 50%;
+        padding: 3px;
+        height: 50px;
+        vertical-align: center;
+        text-align: center;
+        }
 
-</style>
-    <div class="container">
-        {% block app_content %}{% endblock %}
-    </div>
+        body{
+            font-family: 'Raleway', sans-serif;
+        }
+
+    </style>
+    {% block app_content %}{% endblock %}
 {% endblock %}

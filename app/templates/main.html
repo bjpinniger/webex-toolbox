@@ -1,0 +1,14 @@
+{% extends "head.html" %}
+
+{% block app_content %}
+<div class="container" align="center">
+  <h2>
+      {% if avatar|length == 0 %}
+        <img src="{{ url_for('static', filename='DefaultAvatar.png') }}" alt="default avatar" style="width:42px;height:42px;">
+      {% else %}
+        <img src="{{ avatar }}" alt="avatar" style="width:42px;height:42px;" class='img-circle'>
+      {% endif %}
+        Welcome {{Display_Name}}!</h2>
+{% include 'foot.html' %}
+</div>
+{% endblock %}

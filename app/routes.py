@@ -9,12 +9,12 @@ from webexteamssdk import WebexTeamsAPI, Webhook
 from flask import Flask, session, render_template, flash, request, redirect, url_for, jsonify, Response
 from flask_pymongo import PyMongo
 from app import app
-from app.forms import SelectSpaceForm, AddSpaceForm, DeleteSpaceForm, OOOForm, DeleteMessagesForm, Webex_Meetings, SettingsForm
+from app.forms import ManageSpaceForm, AddSpaceForm, DeleteSpaceForm, OOOForm, DeleteMessagesForm, Webex_Meetings, SettingsForm
 from app.ciscowebex import  get_tokens, get_oauthuser_info, get_rooms, create_space, delete_space, send_message, create_webhook, delete_webhook, list_webhooks, send_directmessage, get_messages, delete_message, get_message, get_member_details, send_card, get_attachment, set_TimeZone, confirm_TimeZone, OOO_webhook, leave_space
 from app.addusers import addusers
 from app.meetings import get_meetings
 from app.webex_bot import incoming_msg
-from app.extensions import mongo, add_usr, get_user, get_OOO, update_OOO, get_TZ_fromPhone, webex_settings, get_webex_settings, update_UTC
+from app.extensions import mongo, add_usr, get_user, get_OOO, update_OOO, get_TZ_fromPhone, update_settings, get_settings, update_UTC, add_spaces, get_spaces
 from config import Config
 
 app.config.from_object(Config)
@@ -47,17 +47,17 @@ def oauth():
     if "code" in request.args and state == "Toolbox":
         code = request.args.get("code") #Captures value of the code.
         access_token, expires_in, refresh_token, refresh_token_expires_in = get_tokens(clientID, secretID, code, redirectURI)
-        personID, emailID, displayName, status, phone_nums = get_oauthuser_info(access_token)
+        personID, emailID, displayName, status, phone_nums, avatar = get_oauthuser_info(access_token)
         token_expires = datetime.now() + timedelta(seconds=expires_in)
         refresh_expires = datetime.now() + timedelta(seconds=refresh_token_expires_in)
-        result = add_usr(personID, displayName, access_token, token_expires, refresh_token, refresh_expires)
+        result = add_usr(personID, displayName, access_token, token_expires, refresh_token, refresh_expires, avatar)
         print (result)
         session['user'] = personID
         if ' ' in displayName:
             firstName, lastName = displayName.split(' ')
         else:
             firstName = displayName
-        return render_template("granted.html", Display_Name=firstName)
+        return render_template("main.html", Display_Name=firstName, avatar=avatar)
     else:
         return render_template("index.html")
 
@@ -72,17 +72,30 @@ def home():
     person_ID = session.get('user')
     result, user = get_user(person_ID)
     displayName = user["name"]
+    avatar = user["avatar"]
     if ' ' in displayName:
         firstName, lastName = displayName.split(' ')
     else:
         firstName = displayName
-    return render_template("granted.html", Display_Name=firstName)
+    return render_template("main.html", Display_Name=firstName, avatar=avatar)
+
+@app.route('/spaces', methods = ['GET'])
+def spaces():
+    person_ID = session.get('user')
+    result, user = get_user(person_ID)
+    displayName = user["name"]
+    avatar = user["avatar"]
+    if ' ' in displayName:
+        firstName, lastName = displayName.split(' ')
+    else:
+        firstName = displayName
+    return render_template("spaces.html", Display_Name=firstName, avatar=avatar)
 
 @app.route('/settings', methods = ['GET', 'POST'])
 def settings():
     person_ID = session.get('user')
-    wbx_settings = get_webex_settings(person_ID)
-    form = SettingsForm(data=wbx_settings)
+    settings = get_settings(person_ID)
+    form = SettingsForm(data=settings)
     if request.method == 'POST':
         if form.validate() == False:
             flash('All fields are required.')
@@ -91,18 +104,25 @@ def settings():
             site_name = request.form['site_name']
             user_email = request.form['user_email']
             user_pwd = request.form['user_pwd']
-            result = webex_settings(person_ID, site_name, user_email, user_pwd)
+            sortBy = request.form['sortBy']
+            maxResults = request.form['maxResults']
+            max = int(maxResults)
+            result = update_settings(person_ID, site_name, user_email, user_pwd, sortBy, max)
             return render_template('success.html', result=result)
     elif request.method == 'GET':
         return render_template("settings.html", form=form)
 
-@app.route('/selectspace', methods = ['GET', 'POST'])
-def selectspace():
+@app.route('/managespace', methods = ['GET', 'POST'])
+def managespace():
     person_ID = session.get('user')
     result, user = get_user(person_ID)
     accesstoken = user['access_token']
-    room_list = get_rooms(accesstoken, person_ID, "all")
-    form = SelectSpaceForm()
+    result, room_list = get_spaces(person_ID)
+    if result != "success":
+        room_list = get_rooms(accesstoken, person_ID, False, "")
+        result = add_spaces(person_ID, room_list)
+        print (result)
+    form = ManageSpaceForm()
     form.space.choices = room_list
     if request.method == 'POST':
         spaceId = request.form['space']
@@ -115,7 +135,7 @@ def selectspace():
         emails, results = addusers(spaceId, accesstoken, email_list)
         return render_template('success.html', messages=zip(emails,results), ColumnName="Email Address")
     elif request.method == 'GET':
-        return render_template('selectspace.html', form = form)  
+        return render_template('managespace.html', form = form)  
 
 @app.route('/addspace', methods = ['GET', 'POST'])
 def addspace():
@@ -143,7 +163,9 @@ def deletespace():
     person_ID = session.get('user')
     result, user = get_user(person_ID)
     accesstoken = user['access_token']
-    room_list = get_rooms(accesstoken, person_ID, "creator")
+    #result, room_list = get_spaces(person_ID)
+    #if result != "success":
+    room_list = get_rooms(accesstoken, person_ID, True, "")
     form = DeleteSpaceForm()
     form.space.choices = room_list
     if request.method == 'POST':
@@ -173,7 +195,11 @@ def leavespace():
     person_ID = session.get('user')
     result, user = get_user(person_ID)
     accesstoken = user['access_token']
-    room_list = get_rooms(accesstoken, person_ID, "all")
+    result, room_list = get_spaces(person_ID)
+    if result != "success":
+        room_list = get_rooms(accesstoken, person_ID, False, "")
+        result = add_spaces(person_ID, room_list)
+        print (result)
     form = DeleteSpaceForm()
     form.space.choices = room_list
     if request.method == 'POST':
@@ -201,7 +227,11 @@ def deletemessages():
     person_ID = session.get('user')
     result, user = get_user(person_ID)
     accesstoken = user['access_token']
-    room_list = get_rooms(accesstoken, person_ID, "all")
+    result, room_list = get_spaces(person_ID)
+    if result != "success":
+        room_list = get_rooms(accesstoken, person_ID, False, "")
+        result = add_spaces(person_ID, room_list)
+        print (result)
     form = DeleteMessagesForm()
     form.space.choices = room_list
     if request.method == 'POST':
@@ -341,9 +371,19 @@ def delete_webhooks(action):
 @app.route('/reports/<report_type>/<start_date>')
 def reports(report_type, start_date):
     person_ID = session.get('user')
-    wbx_settings = get_webex_settings(person_ID)
-    result, mtgArray = get_meetings(report_type, start_date, wbx_settings)
+    settings = get_settings(person_ID)
+    result, mtgArray = get_meetings(report_type, start_date, settings)
     return jsonify({'meetings' : mtgArray})
+
+@app.route('/fetch_spaces', methods=['GET'])
+def fetch_spaces():
+    person_ID = session.get('user')
+    result, user = get_user(person_ID)
+    accesstoken = user['access_token']
+    room_list = get_rooms(accesstoken, person_ID, False, "")
+    result = add_spaces(person_ID, room_list)
+    print (result)
+    return  jsonify({'result' : 'success'})
 
 
 # - - - Inbound Webhook Routes - - -
@@ -395,7 +435,7 @@ def webhook():
             OOO_webhook(sender_ID, access_token, (webhookURI + "/ooo"), webhookID_D, webhookID_M, message_text, Str_EndDate, country, OOO_enabled, Direct, Mentions, TZ_Name)
             if TZ_Name == "":
                 try:
-                    personID, emailID, displayName, status, phone_nums = get_oauthuser_info(access_token)
+                    personID, emailID, displayName, status, phone_nums, avatar = get_oauthuser_info(access_token)
                     phone_num = phone_nums[0]
                     TZ, country = get_TZ_fromPhone(phone_num)
                     result = confirm_TimeZone(sender_ID, TZ)
@@ -453,7 +493,7 @@ def ooo():
     Text_EndDate = datetime.strftime(OOO['end_date'], '%b %d %Y %I:%M %p')
     Card_EndDate = datetime.strftime(OOO['end_date'], '%Y-%m-%dT%H:%M:%SZ') 
     result, message_text = get_message(access_token, message_ID)
-    personID, emailID, displayName, status, phone_nums = get_oauthuser_info(access_token)
+    personID, emailID, displayName, status, phone_nums, avatar = get_oauthuser_info(access_token)
     if status == "OutOfOffice":
         if len(message) == 0:
             message_text = "I'm out of the office."
