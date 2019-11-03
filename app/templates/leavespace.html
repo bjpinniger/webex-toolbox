@@ -32,7 +32,7 @@
     <div class="row">
         <div class="col-xs-1 col-md-2 col-lg-3"></div>
         <div class="col-xs-10 col-md-8 col-lg-6">
-            <h2 style = "text-align: center; padding: 10pt;">Leave spaces</h2>
+            <h2 style = "text-align: center; padding-bottom: 10pt;">Leave spaces</h2>
             <p></p>
             <div class="col text-center">
                 <button type="button" id="myBtn" class="btn btn-primary" data-toggle="modal" data-target="#myModal" style = "align-content : center;">View Members</button>
@@ -57,9 +57,9 @@
             <form action="" method="post" class="form" role="form">
                 {{ form.csrf_token() }}
                 <dl>
-                    {{ render_field(form.space) }}
+                    {{ render_field(form.space, size=15) }}
                 </dl>
-            <p><input type=submit class='btn btn-danger btn-block' value="Leave Space"></p>
+            <p><input type=submit class='btn btn-danger btn-block' value="Leave Spaces"></p>
             </form>
             </div>
         <div class="col-xs-1 col-md-2 col-lg-3"></div>

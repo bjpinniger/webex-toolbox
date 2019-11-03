@@ -10,7 +10,7 @@ from flask import Flask, session, render_template, flash, request, redirect, url
 from flask_pymongo import PyMongo
 from app import app
 from app.forms import ManageSpaceForm, AddSpaceForm, DeleteSpaceForm, OOOForm, DeleteMessagesForm, Webex_Meetings, SettingsForm
-from app.ciscowebex import  get_tokens, get_oauthuser_info, get_rooms, create_space, delete_space, send_message, create_webhook, delete_webhook, list_webhooks, send_directmessage, get_messages, delete_message, get_message, get_member_details, send_card, get_attachment, set_TimeZone, confirm_TimeZone, OOO_webhook, leave_space
+from app.ciscowebex import  get_tokens, get_oauthuser_info, get_space_list, create_space, delete_space, send_message, create_webhook, delete_webhook, list_webhooks, send_directmessage, get_messages, delete_message, get_message, get_member_details, send_card, get_attachment, set_TimeZone, confirm_TimeZone, OOO_webhook, leave_space
 from app.addusers import addusers
 from app.meetings import get_meetings
 from app.webex_bot import incoming_msg
@@ -117,10 +117,12 @@ def managespace():
     person_ID = session.get('user')
     result, user = get_user(person_ID)
     accesstoken = user['access_token']
-    result, room_list = get_spaces(person_ID)
+    result, room_list = get_spaces(person_ID, False)
     if result != "success":
-        room_list = get_rooms(accesstoken, person_ID, False, "")
-        result = add_spaces(person_ID, room_list)
+        #room_list = get_rooms(accesstoken, person_ID, False, "")
+        result, room_list, created_list = get_space_list(accesstoken, person_ID)
+        print (result)
+        result = add_spaces(person_ID, room_list, created_list)
         print (result)
     form = ManageSpaceForm()
     form.space.choices = room_list
@@ -163,9 +165,11 @@ def deletespace():
     person_ID = session.get('user')
     result, user = get_user(person_ID)
     accesstoken = user['access_token']
-    #result, room_list = get_spaces(person_ID)
-    #if result != "success":
-    room_list = get_rooms(accesstoken, person_ID, True, "")
+    result, room_list = get_spaces(person_ID, True)
+    if result != "success":
+    #room_list = get_rooms(accesstoken, person_ID, True, "")
+        result, room_list, created_list = get_space_list(accesstoken, person_ID)
+        print (result)
     form = DeleteSpaceForm()
     form.space.choices = room_list
     if request.method == 'POST':
@@ -195,10 +199,12 @@ def leavespace():
     person_ID = session.get('user')
     result, user = get_user(person_ID)
     accesstoken = user['access_token']
-    result, room_list = get_spaces(person_ID)
+    result, room_list = get_spaces(person_ID, False)
     if result != "success":
-        room_list = get_rooms(accesstoken, person_ID, False, "")
-        result = add_spaces(person_ID, room_list)
+        #room_list = get_rooms(accesstoken, person_ID, False, "")
+        result, room_list, created_list = get_space_list(accesstoken, person_ID)
+        print (result)
+        result = add_spaces(person_ID, room_list, created_list)
         print (result)
     form = DeleteSpaceForm()
     form.space.choices = room_list
@@ -227,10 +233,12 @@ def deletemessages():
     person_ID = session.get('user')
     result, user = get_user(person_ID)
     accesstoken = user['access_token']
-    result, room_list = get_spaces(person_ID)
+    result, room_list = get_spaces(person_ID, False)
     if result != "success":
-        room_list = get_rooms(accesstoken, person_ID, False, "")
-        result = add_spaces(person_ID, room_list)
+        #room_list = get_rooms(accesstoken, person_ID, False, "")
+        result, room_list, created_list = get_space_list(accesstoken, person_ID)
+        print (result)
+        result = add_spaces(person_ID, room_list, created_list)
         print (result)
     form = DeleteMessagesForm()
     form.space.choices = room_list
@@ -380,11 +388,12 @@ def fetch_spaces():
     person_ID = session.get('user')
     result, user = get_user(person_ID)
     accesstoken = user['access_token']
-    room_list = get_rooms(accesstoken, person_ID, False, "")
-    result = add_spaces(person_ID, room_list)
+    #room_list = get_rooms(accesstoken, person_ID, False, "")
+    result, room_list, created_list = get_space_list(accesstoken, person_ID)
+    print (result)
+    result = add_spaces(person_ID, room_list, created_list)
     print (result)
     return  jsonify({'result' : 'success'})
-
 
 # - - - Inbound Webhook Routes - - -
 

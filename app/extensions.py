@@ -30,22 +30,26 @@ def add_usr(personID, displayName, access_token, token_expires, refresh_token, r
         result = user["name"] + " - user already exists"
     return result
 
-def add_spaces(personID, room_list):
+def add_spaces(personID, room_list, created_list):
     spaces_collection = mongo.db.spaces
     user = spaces_collection.find_one({'person_ID' : personID})
     if user is None:
-        spaces_collection.insert({'person_ID' : personID, 'spaces' : room_list})
+        spaces_collection.insert({'person_ID' : personID, 'spaces' : room_list, 'created' : created_list})
         result = "spaces added"
     else:
-        spaces_collection.update({'person_ID' : personID}, {"$set":{'spaces' : room_list}})
+        spaces_collection.update({'person_ID' : personID}, {"$set":{'spaces' : room_list, 'created' : created_list}})
         result = "spaces updated"
     return result
 
-def get_spaces(person_ID):
+def get_spaces(person_ID, created):
     spaces_collection = mongo.db.spaces 
     user = spaces_collection.find_one({'person_ID' : person_ID})
     try:
-        room_list = user["spaces"]
+        if created:
+            query = user["created"]
+        else:
+            query = user["spaces"]
+        room_list = query
         result = "success"
     except Exception as e:
         print ("Exception: " + str(e))

@@ -67,49 +67,49 @@
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
 <script src="https://code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
 <script type="text/javascript">
-    $(function () {
-        $('#datetimepicker1').datetimepicker({
-                    format: 'MMM DD YYYY LT'
-                }
-        );
-    });
+$(function () {
+    $('#datetimepicker1').datetimepicker({
+                format: 'MMM DD YYYY LT'
+            }
+    );
+});
 </script>
 <script type="text/javascript" charset="utf-8">
-    $(document).ready(function() {
-        var d = new Date();
-        var n = d.getTimezoneOffset();
-        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        document.getElementById("TZ_Name").value = tz;
-        document.getElementById("TZ_Offset").value = n;
-        var enddate = document.getElementById("end_date").value;
-        var ts = moment.utc(enddate);
-        document.getElementById("end_date").value = ts.local().format("MMM DD YYYY LT");
-    });
+$(document).ready(function() {
+    var d = new Date();
+    var n = d.getTimezoneOffset();
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    document.getElementById("TZ_Name").value = tz;
+    document.getElementById("TZ_Offset").value = n;
+    var enddate = document.getElementById("end_date").value;
+    var ts = moment.utc(enddate);
+    document.getElementById("end_date").value = ts.local().format("MMM DD YYYY LT");
+});
 </script>
 <script>
-    var btn = document.getElementById("myBtn");
-    var btn1 = document.getElementById("help");
-    var message_field = document.getElementById("message");
-    var date_field = document.getElementById("end_date");
-    var message_text = document.getElementById("message-text");
-    var title_text = document.getElementById("title-text");
-    
-    btn.onclick = function() {
-        title_text.innerHTML = "Preview Response"
-        message_value = message_field.value;
-        date_value = date_field.value;
-        if(message_value.length == 0){
-            message_text.innerHTML = "OOO Assistant: I'm out of the office until " + date_value;
-            }
-        else {
-            message_text.innerHTML = "OOO Assistant: " + message_value + " until " + date_value;    
-            }
-    }
+var btn = document.getElementById("myBtn");
+var btn1 = document.getElementById("help");
+var message_field = document.getElementById("message");
+var date_field = document.getElementById("end_date");
+var message_text = document.getElementById("message-text");
+var title_text = document.getElementById("title-text");
 
-    btn1.onclick = function() {
-        title_text.innerHTML = "Help";
-        message_text.innerHTML = "<b>Enabled:</b> Activates the Out of Office Assistant.<br><b>Direct:</b> Responds to Direct messages.<br><b>Mentions:</b> Responds to messages where you are @Mentioned.<br><br><b>NOTE:</b> If the Out of Office Assistant is disabled but Direct and/or Mentions is active <i>and</i> your Webex Teams status is <b>Out Of Office</b> a generic response will be sent as follows: <b>I'm out of the office.</b>";
-        get_TZOffset();
-    }
+btn.onclick = function() {
+    title_text.innerHTML = "Preview Response"
+    message_value = message_field.value;
+    date_value = date_field.value;
+    if(message_value.length == 0){
+        message_text.innerHTML = "OOO Assistant: I'm out of the office until " + date_value;
+        }
+    else {
+        message_text.innerHTML = "OOO Assistant: " + message_value + " until " + date_value;    
+        }
+}
+
+btn1.onclick = function() {
+    title_text.innerHTML = "Help";
+    message_text.innerHTML = "<b>Enabled:</b> Activates the Out of Office Assistant.<br><b>Direct:</b> Responds to Direct messages.<br><b>Mentions:</b> Responds to messages where you are @Mentioned.<br><br><b>NOTE:</b> If the Out of Office Assistant is disabled but Direct and/or Mentions is active <i>and</i> your Webex Teams status is <b>Out Of Office</b> a generic response will be sent as follows: <b>I'm out of the office.</b>";
+    get_TZOffset();
+}
 </script>
 {% endblock %}

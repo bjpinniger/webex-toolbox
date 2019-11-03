@@ -65,6 +65,61 @@ def get_rooms(user_token, person_ID, creator, room_filter):
         room_list = [(room.id,room.title) for room in rooms]
     return room_list
 
+def get_space_list(user_token, person_ID):
+    url = "https://api.ciscospark.com/v1/rooms"
+    settings = get_settings(person_ID)
+    try:
+        sortBy = settings['sortBy']
+        maxResults = settings['maxResults']
+    except:
+        sortBy='lastactivity'
+        maxResults = 0
+    if maxResults > 0:
+        querystring = {
+            "type": "group",
+            "sortBy": sortBy,
+            "max": maxResults
+            }
+    else:
+        querystring = {
+            "type": "group",
+            "sortBy": sortBy
+            }
+    headers = {
+        'Authorization': "Bearer " + user_token
+        }
+    try:
+        response = requests.get(url=url, headers=headers, params=querystring)
+        result = "Success"
+    except ApiError as error:
+        result = "There was a problem getting the spaces."
+    room_list = []
+    created_list = []
+    while result == "Success":
+        room_list, created_list = append_spaces(response, person_ID, room_list, created_list)
+        try:
+            links = response.links
+            #print (links)
+            url = links['next']['url']
+            print (url)
+            response = requests.get(url=url, headers=headers)
+            result = "Success"
+        except Exception as e:
+            print ("Exception: " + str(e))
+            result = "No more links."
+    return result, room_list, created_list
+
+def append_spaces(response, person_ID, room_list, created_list):
+    results = json.loads(response.text)
+    spaces = results["items"]
+    for space in spaces:
+        space_item = (space["id"],space["title"])
+        room_list.append(space_item)
+        if space["creatorId"] == person_ID:
+            created_list.append(space_item)
+    return room_list, created_list
+
+
 def add_users(user_token, email, spaceId):
     api = WebexTeamsAPI(access_token=user_token)
     try:
@@ -255,15 +310,21 @@ def get_messages(user_token, spaceID, personID, getList):
     if getList:
         for msg in messages:
             if msg["personId"] == personID:
-                message = (msg["id"],msg["text"])
-                msgArray.append(message)
+                try:
+                    message = (msg["id"],msg["text"])
+                    msgArray.append(message)
+                except Exception as e:
+                    print ("Exception: " + str(e))
     else:
         for msg in messages:
             if msg["personId"] == personID:
                 msgObj = {}
-                msgObj['id'] = msg["id"]
-                msgObj['msgtxt'] = msg["text"]
-                msgArray.append(msgObj)
+                try:
+                    msgObj['id'] = msg["id"]
+                    msgObj['msgtxt'] = msg["text"]
+                    msgArray.append(msgObj)
+                except Exception as e:
+                    print ("Exception: " + str(e))
     result = "Success"
     return result, msgArray
 
